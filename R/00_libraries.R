@@ -1,0 +1,13 @@
+# required libraries 
+install.packages("readr")
+install.packages("here")
+install.packages("lubridate")
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("gghighlight")
+install.packages("stringr")
+install.packages("tidysynth")
+install.packages("stargazer")
+install.packages("purrr")
+install.packages("tidyr")
+install.packages("tidyverse")

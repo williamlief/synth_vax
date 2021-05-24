@@ -1,0 +1,226 @@
+---
+title: "05 power analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(dplyr)
+library(tidysynth)
+library(dplyr)
+library(ggplot2)
+library(stargazer)
+library(purrr)
+library(tidyr)
+
+dat <- readRDS(here("data/weekly_data_2021-05-17.rds")) 
+
+```
+
+# Examine changes in vaccination rates over time and across states
+```{r changeInVaxRates}
+
+state_growth_rates <- dat %>%
+  group_by(state) %>%
+  mutate(growth = people_fully_vaccinated_per_hundred - lag(people_fully_vaccinated_per_hundred)) %>%
+  select(state,growth,people_fully_vaccinated_per_hundred,centered_week) %>%
+  summarise(low=quantile(growth,.05,na.rm=TRUE),high=quantile(growth,.95,na.rm=TRUE))
+
+state_growth_rates_normal <- dat %>%
+  group_by(state) %>%
+  mutate(growth = people_fully_vaccinated_per_hundred - lag(people_fully_vaccinated_per_hundred)) %>%
+  select(state,growth,people_fully_vaccinated_per_hundred,centered_week) %>%
+ summarise(mean=mean(growth,na.rm=TRUE),sd=sd(growth,na.rm=TRUE))
+
+state_growth_rates
+
+growth_rates <- state_growth_rates
+
+estimate_growth <- function(my_state, 
+                            scaling_factor = 1, 
+                            growth_rates = state_growth_rates){
+
+  state_level <- growth_rates %>% filter(state==eval(my_state))
+  #print(state_level)
+  draw <- runif(n = 1, state_level$low, state_level$high)
+  
+  if( my_state=="OH" )
+  draw <- runif(1,0,scaling_factor) + draw
+  draw
+}
+
+estimate_growth_normal <- function(my_state, 
+                                   scaling_factor = 1,
+                                   growth_rates = state_growth_rates_normal){
+
+  state_level <- growth_rates %>% filter(state==eval(my_state))
+  #print(state_level)
+  draw <- rnorm(n=1, state_level$mean, state_level$sd)
+  
+  if( my_state=="OH" )
+  draw <- scaling_factor + draw
+  pmax(draw,0)
+}
+
+estimate_growth <- function(my_state,
+                            scaling_factor=1,
+                            growth_rates = state_growth_rates) {
+
+  state_level<-growth_rates %>% filter(state==eval(my_state))
+  print(state_level)
+  draw<-runif(n=1,1.5,3)
+  if( my_state=="OH" )
+  draw<-runif(1,0,scaling_factor) +draw
+  pmax(draw,0)
+}
+
+x <- estimate_growth_normal("CA")
+
+dat %>% group_by(state) %>%
+  mutate(growth = people_fully_vaccinated_per_hundred - lag(people_fully_vaccinated_per_hundred)) %>%
+  ungroup() %>%
+  group_by(centered_week) %>%
+  summarise(across(growth,quantile,probs=c(.05,.95),na.rm=TRUE))
+
+```
+
+
+
+### Generate Growth Rates for Power Analysis
+
+```{r}
+
+growth_rate_tex <- 
+  state_growth_rates_normal %>% 
+  mutate_if(is_numeric,~round(.,3))%>% as_data_frame() %>%
+  stargazer::stargazer(summary = FALSE,digits = 3,rownames = FALSE) 
+
+print(growth_rate_tex,digits = 3)
+
+```
+
+
+
+## Generate Number of Weeks to Simulate
+
+```{r setup, include=FALSE}
+
+weeks <- dat %>% 
+  ungroup() %>% 
+  select(centered_week) %>%
+  mutate(centered_week = centered_week + 6) %>% 
+  filter(centered_week >= 0,centered_week <= 6) %>%
+  unique()
+
+```
+
+# Setup MultiProcessing 
+```{r}
+
+library(doParallel)
+detectCores()
+registerDoParallel(20)
+
+```
+
+## POWER Analysis
+
+```{r}
+proc.time()
+set.seed(12345)
+proc.time()
+trials<-200
+power_results<-NULL
+sc <- seq(0,2,by=.25)
+
+i<-0
+for(i in sc){
+foreach(icount(trials),.combine = bind_rows) %dopar%{
+  library(tidyverse)
+  library(tidysynth)
+dat %>%
+  filter(centered_week == 0) %>%
+  select(state, people_fully_vaccinated_per_hundred) %>%
+  left_join(weeks, by = character()) %>%
+  mutate(growth=map_dbl(state,estimate_growth_normal,scaling_factor=i)) %>%
+  filter(centered_week>0) %>%
+  group_by(state) %>%
+  mutate(cum_growth=cumsum(growth)) %>%
+  mutate(people_fully_vaccinated_per_hundred=people_fully_vaccinated_per_hundred+cum_growth)->growth_scenario
+
+synthetic_case<-bind_rows(dat,growth_scenario)
+vaccine_out <-
+  
+  synthetic_case %>%
+  
+  # initial the synthetic control object
+  synthetic_control(outcome = people_fully_vaccinated_per_hundred, # outcome
+                    unit = state, # unit index in the panel data
+                    time = centered_week, # time index in the panel data
+                    i_unit = "OH", # unit where the intervention occurred
+                    i_time = 0, # time period when the intervention occurred
+                    generate_placebos=T # generate placebo synthetic controls (for inference)
+                    ) %>%
+# Matching on FUlly vaccination the weeks before the intervention  
+  generate_predictor(time_window = -17, people_fully_vaccinated_per_hundred17 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -16, people_fully_vaccinated_per_hundred16 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -15, people_fully_vaccinated_per_hundred15 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -14, people_fully_vaccinated_per_hundred14 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -13, people_fully_vaccinated_per_hundred13 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -12, people_fully_vaccinated_per_hundred12 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -11, people_fully_vaccinated_per_hundred11 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -10, people_fully_vaccinated_per_hundred10 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -09, people_fully_vaccinated_per_hundred09 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -08, people_fully_vaccinated_per_hundred08 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -07, people_fully_vaccinated_per_hundred07 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -06, people_fully_vaccinated_per_hundred06 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -05, people_fully_vaccinated_per_hundred05 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -04, people_fully_vaccinated_per_hundred04 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -03, people_fully_vaccinated_per_hundred03 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -02, people_fully_vaccinated_per_hundred02 = people_fully_vaccinated_per_hundred) %>%
+  generate_predictor(time_window = -01, people_fully_vaccinated_per_hundred01 = people_fully_vaccinated_per_hundred) %>%
+
+
+  
+  # Generate the fitted weights for the synthetic control
+  generate_weights(optimization_window = -17:-1, # time to use in the optimization task
+                   margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6 # optimizer options
+  ) %>%
+  
+  # Generate the synthetic control
+  generate_control()
+
+
+results<- vaccine_out %>% grab_signficance() %>% mutate(scaling_factor=i)
+#print(i)
+}-> power_analysis
+print(i)  
+  power_results<-bind_rows(power_results,power_analysis)
+}
+```
+
+# Power Plot
+ 
+```{r}
+power_results %>% write_csv(here("output/power_estimates_5_21.csv"))
+power_results <- read_csv(here("data/power_estimates_5_21.csv"))
+
+#power_analysis(1)->p
+power_results %>%
+  filter(unit_name == "OH") %>%
+  group_by(scaling_factor) %>%
+  summarise(top5 = mean(fishers_exact_pvalue <= .1), 
+            top3 = mean(fishers_exact_pvalue <= .06),
+            top2 = mean(fishers_exact_pvalue <= .04)) %>%
+  pivot_longer(c('top5','top3','top2'), names_to = "number_of_states",values_to="power") %>%
+  ggplot(aes(x=scaling_factor,y=power,color=number_of_states))+labs(x="Effect Size (%) Per Week",y="Power",title = "Power and Effect Size") +
+  geom_point()+
+  geom_line()+
+  scale_y_continuous(labels=scales::label_percent()) +
+  theme(legend.position = "bottom")
+  ggsave(here("figures/effect_size_plot.jpg"))
+
+power_results %>% filter(unit_name=="OH")  %>% group_by(scaling_factor) %>% summarise(mean(fishers_exact_pvalue<=.05)) %>% write_csv("output/power_results_normal.csv")
+
+```
