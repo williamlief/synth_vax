@@ -172,7 +172,7 @@ placebo_out %>% plot_differences()  +
 
 ggsave(here("figures/placebo_difference.jpg"))
 
-placebo_out %>% grab_signficance()
+placebo_out %>% grab_signficance() %>% filter(unit_name=="OH")
 
 placebo_out %>% grab_unit_weights() %>% arrange(desc(weight))
 

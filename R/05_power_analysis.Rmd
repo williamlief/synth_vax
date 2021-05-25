@@ -204,7 +204,7 @@ print(i)
  
 ```{r}
 power_results %>% write_csv(here("output/power_estimates_5_21.csv"))
-power_results <- read_csv(here("data/power_estimates_5_21.csv"))
+power_results <- read_csv(here("output/power_estimates_5_21.csv"))
 
 #power_analysis(1)->p
 power_results %>%
