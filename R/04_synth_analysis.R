@@ -1,11 +1,9 @@
-# This script runs the synth model and creates the pre-registered synthetic weights
-# It also runs a placebo synthetic model. 
+# This script runs the synth model 
 
 library(here)
 library(tidyverse)
 library(tidysynth)
 library(stargazer)
-
 
 dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
 
@@ -20,7 +18,7 @@ vaccine_out <-
                     i_time = 0, # time period when the intervention occurred
                     generate_placebos=T # generate placebo synthetic controls (for inference)
   ) %>%
-  # Matching on FUlly vaccination the weeks before the intervention  
+  # Matching on fully vaccinated the weeks before the intervention  
   generate_predictor(time_window = -17, lagged_vaccinations_week17 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -16, lagged_vaccinations_week16 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -15, lagged_vaccinations_week15 = people_fully_vaccinated_per_hundred) %>%
@@ -42,13 +40,38 @@ vaccine_out <-
   generate_weights(optimization_window = -17:-1, # time to use in the optimization task
                    margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6 # optimizer options
   ) %>%
-  
   # Generate the synthetic control
   generate_control()
 
-# Plot Model
+# NOTE: instead of loading the pre-registered weights we simply rerun the model
+# this results in the exact same weights since the weights are based only on 
+# pre-treatment data. 
+# Confirm in table below that weights are identical to three decimal places to 
+# the pre-registered weights.
+vaccine_out %>%
+  grab_unit_weights() %>%
+  mutate(weights = round(weight, digits = 4)) %>%
+  select(unit, weights) %>%
+  filter(weights>0.0001) %>%
+  as.data.frame() %>%
+  stargazer(summary = FALSE, rownames = FALSE)
 
+vaccine_out %>% plot_weights() + 
+  labs(title="Synthetic Control Weights")   
+# Note: not included in paper writeup
+ggsave(here("figures/weights.jpg"))
 
+# Balance Table
+vaccine_out %>%
+  grab_balance_table() %>%
+  mutate(difference = OH - synthetic_OH) %>%
+  select(variable, OH, synthetic_OH, difference, donor_sample) %>%
+  as.data.frame() %>%
+  stargazer(summary = FALSE, rownames = FALSE, 
+            caption = "Balance Table", 
+            label = "balancetable")
+
+# Plot Model Trends
 vaccine_out %>% plot_trends() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
   labs(
@@ -57,7 +80,10 @@ vaccine_out %>% plot_trends() +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
+# NOTE: not included in paper writeup
 ggsave("figures/treatment_trends.jpg")
+
+# Plot Model Differences
 vaccine_out %>% plot_differences() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
   labs(
@@ -68,126 +94,56 @@ vaccine_out %>% plot_differences() +
   ) 
 ggsave("figures/treatment_differences.jpg")
 
+# Main result values
+mspe <- vaccine_out %>% 
+  grab_signficance() %>% 
+  rename(mspe_rank=rank) 
 
-vaccine_out %>% plot_mspe_ratio() +
-  labs(
-#    title = "Ohio and Synthetic Ohio",
-#    caption = "Timing of The Lottery Announcement",
-#    x="Weeks Relative to Lottery Announcement",
-#    y="Percent Fully Vaccinated"
-  ) 
-
-View(vaccine_out %>%
-       unnest(.synthetic_control))
-vaccine_out %>% grab_signficance() %>% rename(mspe_rank=rank) ->mspe
-vaccine_out %>%
+average_diff <- vaccine_out %>%
   unnest(.synthetic_control) %>%
   filter(time_unit >= 1) %>%
   group_by(.id) %>%
   summarise(average_difference = mean(real_y - synth_y)) %>%
-  arrange(desc(average_difference)) %>% mutate(average_rank=row_number()) -> average_diff
+  arrange(desc(average_difference)) %>%
+  mutate(average_rank=row_number()) 
 
-vaccine_out %>%
-  unnest(.synthetic_control)  %>%
-  filter(.id=="OH") %>% filter(time_unit==max(time_unit))
-vaccine_out %>%
+last_period_diff <- vaccine_out %>%
   unnest(.synthetic_control) %>%
   filter(time_unit == max(time_unit)) %>%
   group_by(.id) %>%
   summarise(last_period_diff = (real_y - synth_y)) %>%
   distinct() %>%
   ungroup() %>%
-  arrange(desc(last_period_diff)) %>% mutate(last_period_rank=row_number()) -> last_period_diff
+  arrange(desc(last_period_diff)) %>% 
+  mutate(last_period_rank=row_number())
 
-mspe %>% left_join(average_diff,by=c("unit_name"=".id")) %>% left_join(last_period_diff,by=c("unit_name"=".id")) -> state_performance_metrics
+state_performance_metrics <- 
+  mspe %>% 
+  left_join(average_diff,by=c("unit_name"=".id")) %>% 
+  left_join(last_period_diff,by=c("unit_name"=".id"))
 
 state_performance_metrics %>% filter(unit_name=="OH")
+# NOTE: latex table created by hand
 
+# Permutation Test Plot
 vaccine_out %>% plot_placebos() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
-  
   labs(
     title = "Ohio and Synthetic Ohio",
     caption = "Timing of The Lottery Announcement",
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
-
-ggsave(here("figures/pretreatment_synth.jpg"))
-
-
-vaccine_out %>% plot_differences() +
-  labs(
-    title = "Ohio and Synthetic Ohio",
-    caption = "Timing of The Lottery Announcement",
-    x = "Weeks Relative to Lottery Announcement",
-    y = "Percent Fully Vaccinated"
-  ) 
-
-vaccine_out %>% grab_unit_weights()
-
-vaccine_out %>% plot_weights() + 
-  labs(title="Synthetic Control Weights")   
-
-ggsave(here("figures/weights.jpg"))
-
-
-
-# Balance Table
-
-
-vaccine_out %>%
-  grab_balance_table() %>%
-  mutate(difference = OH - synthetic_OH) %>%
-  select(variable, OH, synthetic_OH, difference, donor_sample) %>%
-  as.data.frame() %>%
-  stargazer(summary = FALSE, rownames = FALSE, 
-            caption = "Balance Table", 
-            label = "balancetable")
-
-
-
-# Unit weights 
-
-vaccine_out %>%
-  grab_unit_weights() %>%
-  mutate(weights = round(weight, digits = 4)) %>%
-  select(unit, weights) %>%
-  filter(weights>0.0001) %>%
-  as.data.frame() %>%
-  stargazer(summary = FALSE, rownames = FALSE)
-
-
-# Unit weights to csv
-
-vaccine_out %>%
-  grab_unit_weights() %>%
-  mutate(weights = round(weight, digits = 4)) %>%
-  select(unit, weights) %>%
-  write_csv(here("output/unit_weights.csv"))
-
-
-vaccine_out %>% grab_signficance() %>% filter(unit_name=="OH")
-
-vaccine_out %>% grab_signficance() %>% filter(unit_name=="OH")
-
-
-vaccine_out %>% plot_placebos() 
-vaccine_out %>% plot_trends() 
-
+# NOTE: not included in paper writeup
+ggsave(here("figures/pretreatment_synth.jpg")) 
 
 
 # Placebo Test ------------------------------------------------------------
+# This test shifts the pre-treatment window back five weeks.
 
-vaccine_out %>% plot_placebos() +geom_line(aes(color==="KS"))
-
-dat %>% ggplot(aes(centered_week,people_fully_vaccinated_per_hundred,color=state=="KS"))+
-  geom_line()
-vaccine_out %>% plot_mspe_ratio()
 placebo_out <-
-  
-  dat %>%
-  
+  dat %>% 
+  filter(centered_week <= 0) %>% 
   # initial the synthetic control object
   synthetic_control(outcome = people_fully_vaccinated_per_hundred, # outcome
                     unit = state, # unit index in the panel data
@@ -196,7 +152,7 @@ placebo_out <-
                     i_time = -5, # time period when the intervention occurred
                     generate_placebos=T # generate placebo synthetic controls (for inference)
                     ) %>%
-# Matching on FUlly vaccination the weeks before the intervention  
+# Matching on fully vaccination the weeks before the intervention  
   generate_predictor(time_window = -17, people_fully_vaccinated_per_hundred17 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -16, people_fully_vaccinated_per_hundred16 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -15, people_fully_vaccinated_per_hundred15 = people_fully_vaccinated_per_hundred) %>%
@@ -209,18 +165,12 @@ placebo_out <-
   generate_predictor(time_window = -08, people_fully_vaccinated_per_hundred08 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -07, people_fully_vaccinated_per_hundred07 = people_fully_vaccinated_per_hundred) %>%
   generate_predictor(time_window = -06, people_fully_vaccinated_per_hundred06 = people_fully_vaccinated_per_hundred) %>%
-
-
-
-  
   # Generate the fitted weights for the synthetic control
   generate_weights(optimization_window = -17:-6, # time to use in the optimization task
                    margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6 # optimizer options
   ) %>%
-  
   # Generate the synthetic control
   generate_control()
-
 
 
 placebo_out %>% plot_trends()  + 
@@ -230,7 +180,6 @@ placebo_out %>% plot_trends()  +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   )
-
 ggsave(here("figures/placebo_analysis.jpg"))
 
 
@@ -241,16 +190,11 @@ placebo_out %>% plot_differences()  +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   )
-
 ggsave(here("figures/placebo_difference.jpg"))
 
 placebo_out %>% grab_signficance() %>% filter(unit_name=="OH")
-
 placebo_out %>% grab_unit_weights() %>% arrange(desc(weight))
 
-placebo_out %>% unnest(.unit_weights) %>% filter(weight>.001) %>% count()
-
 placebo_out %>% plot_mspe_ratio() 
-
 ggsave(here("figures/placebo_mspe.jpg"))
 
