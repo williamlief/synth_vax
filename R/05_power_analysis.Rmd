@@ -14,8 +14,9 @@ library(stargazer)
 library(purrr)
 library(tidyr)
 library(tidyverse)
+library(foreach)
 
-dat <- readRDS(here("data/weekly_data_2021-05-17.rds")) 
+dat <- readRDS(here("data/weekly_data_2021-05-17.rds"))  %>% filter(! state %in% c("AR","CA","CO","KY","MD","NY","OR","WA","WV","ME","MA","DE","NC"))
 
 ```
 
@@ -204,8 +205,8 @@ print(i)
 # Power Plot
  
 ```{r}
-power_results %>% write_csv(here("output/power_estimates_5_21.csv"))
-power_results <- read_csv(here("output/power_estimates_5_21.csv"))
+power_results %>% write_csv(here("output/power_estimates_6_23.csv"))
+power_results <- read_csv(here("output/power_estimates_6_23.csv"))
 
 #power_analysis(1)->p
 power_results %>%
@@ -220,7 +221,7 @@ power_results %>%
   geom_line()+
   scale_y_continuous(labels=scales::label_percent()) +
   theme(legend.position = "bottom")
-  ggsave(here("figures/effect_size_plot.jpg"))
+  ggsave(here("figures/alt_effect_size_plot.jpg"))
 
 power_results %>% filter(unit_name=="OH")  %>% group_by(scaling_factor) %>% summarise(mean(fishers_exact_pvalue<=.05)) %>% write_csv("output/power_results_normal.csv")
 

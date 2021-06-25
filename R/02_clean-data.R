@@ -6,13 +6,13 @@ library(lubridate)
 library(readr)
 library(stringr)
 library(here)
-
+library(glue)
 # This is the date that vax data was pulled, update when we pull final data
-date <- "2021-05-16"
+date <- "2021-06-24"
 
-fips <- read_csv("data-raw/fips.csv")
-raw_cases <- read_csv(str_glue("data-raw/us_cases_{date}.csv"))
-raw_vax <- read_csv(str_glue("data-raw/us_vaccines_{date}.csv"))
+fips <- read_csv(here::here("data-raw/fips.csv"))
+raw_cases <- read_csv(here::here(str_glue("data-raw/us_cases_{date}.csv")))
+raw_vax <- read_csv(here::here(str_glue("data-raw/us_vaccines_{date}.csv")))
 
 # Lottery Announcement Date
 announce_date = mdy("05/12/2021")
