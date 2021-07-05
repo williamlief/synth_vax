@@ -13,20 +13,25 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] foreach_1.5.1     stargazer_5.2.2   tidysynth_0.1.0   forcats_0.5.1     purrr_0.3.4      
- [6] tidyr_1.1.3       tibble_3.1.2      tidyverse_1.3.1   gghighlight_0.3.1 ggplot2_3.3.3    
-[11] glue_1.4.2        stringr_1.4.0     lubridate_1.7.10  dplyr_1.0.6       here_1.0.1       
-[16] readr_1.4.0      
+ [1] glue_1.4.2        foreach_1.5.1     stargazer_5.2.2   tidysynth_0.1.0   fixest_0.9.0     
+ [6] augsynth_0.2.0    gghighlight_0.3.1 here_1.0.1        lubridate_1.7.10  forcats_0.5.1    
+[11] stringr_1.4.0     dplyr_1.0.6       purrr_0.3.4       readr_1.4.0       tidyr_1.1.3      
+[16] tibble_3.1.2      ggplot2_3.3.3     tidyverse_1.3.1  
 
 loaded via a namespace (and not attached):
- [1] xfun_0.19        tidyselect_1.1.1 haven_2.4.1      colorspace_2.0-1 vctrs_0.3.8     
- [6] generics_0.1.0   htmltools_0.4.0  yaml_2.2.1       utf8_1.2.1       rlang_0.4.11    
-[11] pillar_1.6.1     withr_2.4.2      DBI_1.1.0        dbplyr_2.1.1     modelr_0.1.8    
-[16] readxl_1.3.1     lifecycle_1.0.0  munsell_0.5.0    gtable_0.3.0     cellranger_1.1.0
-[21] rvest_1.0.0      codetools_0.2-16 evaluate_0.14    knitr_1.28       fansi_0.5.0     
-[26] broom_0.7.6      Rcpp_1.0.6       scales_1.1.1     backports_1.1.8  jsonlite_1.7.2  
-[31] fs_1.4.1         digest_0.6.27    hms_1.0.0        stringi_1.6.2    grid_4.0.2      
-[36] rprojroot_2.0.2  cli_2.5.0        tools_4.0.2      magrittr_2.0.1   crayon_1.4.1    
-[41] pkgconfig_2.0.3  ellipsis_0.3.2   xml2_1.3.2       reprex_2.0.0     iterators_1.0.13
-[46] assertthat_0.2.1 rmarkdown_2.6    httr_1.4.2       rstudioapi_0.13  R6_2.5.0        
-[51] compiler_4.0.2  
+ [1] nlme_3.1-148        fs_1.4.1            usethis_1.6.1       devtools_2.3.0      httr_1.4.2         
+ [6] rprojroot_2.0.2     dreamerr_1.2.3      numDeriv_2016.8-1.1 tools_4.0.2         backports_1.1.8    
+[11] utf8_1.2.1          R6_2.5.0            DBI_1.1.0           colorspace_2.0-1    withr_2.4.2        
+[16] tidyselect_1.1.1    prettyunits_1.1.1   processx_3.5.2      compiler_4.0.2      cli_2.5.0          
+[21] rvest_1.0.0         xml2_1.3.2          desc_1.2.0          sandwich_2.5-1      scales_1.1.1       
+[26] callr_3.7.0         digest_0.6.27       rmarkdown_2.6       pkgconfig_2.0.3     htmltools_0.4.0    
+[31] sessioninfo_1.1.1   dbplyr_2.1.1        fastmap_1.1.0       rlang_0.4.11        readxl_1.3.1       
+[36] rstudioapi_0.13     generics_0.1.0      zoo_1.8-8           jsonlite_1.7.2      magrittr_2.0.1     
+[41] Formula_1.2-4       Rcpp_1.0.6          munsell_0.5.0       fansi_0.5.0         lifecycle_1.0.0    
+[46] stringi_1.6.2       yaml_2.2.1          pkgbuild_1.0.8      grid_4.0.2          crayon_1.4.1       
+[51] lattice_0.20-41     haven_2.4.1         hms_1.0.0           knitr_1.28          ps_1.3.3           
+[56] pillar_1.6.1        tidylog_1.0.1       clisymbols_1.2.0    codetools_0.2-16    pkgload_1.1.0      
+[61] reprex_2.0.0        evaluate_0.14       LowRankQP_1.0.4     remotes_2.3.0       modelr_0.1.8       
+[66] vctrs_0.3.8         testthat_2.3.2      cellranger_1.1.0    gtable_0.3.0        assertthat_0.2.1   
+[71] cachem_1.0.5        xfun_0.19           broom_0.7.6         iterators_1.0.13    memoise_2.0.0      
+[76] ellipsis_0.3.2     
