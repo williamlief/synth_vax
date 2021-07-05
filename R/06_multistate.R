@@ -2,7 +2,6 @@ library(tidyverse)
 library(lubridate)
 library(here)
 library(gghighlight)
-library(bacondecomp)
 library(augsynth)
 library(fixest)
 
@@ -59,26 +58,16 @@ ggsave(here("figures/vax_byannounce_bystate.jpg"))
 ppool_syn <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce, 
                         state, week, n_leads = max(dat$centered_week, na.rm = T),
                         dat)
+# nu is set to default, which is a heuristic balance between completely separate 
+# comparisons and a fully pooled model. In this case it comes out to 0.27. 
+print(ppool_syn$nu)
 ppool_syn_summ <- summary(ppool_syn)
 
 plot(ppool_syn_summ) + 
-  labs(y = "Difference in Synthetic and Observed", 
-       title = "Multistate Augmented Synthetic Control")
-ggsave(here("figures/multisynth_avg.jpg"))
-
-plot(ppool_syn_summ, levels = "Average")  + 
-  labs(y = "Difference in Synthetic and Observed", 
-       title = "Multistate Augmented Synthetic Control")
-ggsave(here("figures/multisynth_avg.jpg"))
-
-
-ppool_syn_time <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce, 
-                             state, week, n_leads = max(dat$centered_week, na.rm = T),
-                             dat, nu = 0,
-                             time_cohort = TRUE)
-
-ppool_syn_time_summ <- summary(ppool_syn_time)
-ppool_syn_time_summ
+  labs(y = "Difference in Percent Fully Vaccinated", 
+       title = "Multistate Augmented Synthetic Control",
+       subtitle = "Difference between Treated States and Synthetic Comparisons")
+ggsave(here("figures/multisynth_all.jpg"))
 
 # basic two-way fe --------------------------------------------------------
 
@@ -109,32 +98,5 @@ etable(avg_est[1], dynamic_est[1], avg_est[2], dynamic_est[2],
        label = "tab:ddest",
        title = "Difference in Difference Estimates",
        tex = TRUE,
-       notes = "Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors.")
+       notes = "Weekly effect estimates relative to the announcement week. Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors.")
   
-
-# Bacon Decomp ------------------------------------------------------------
-
-df_bacon <- bacon(people_fully_vaccinated_per_hundred ~ post_announce,
-                  data = dat,
-                  id_var = "state",
-                  time_var = "week")
-
-dd_estimate <- sum(df_bacon$estimate*df_bacon$weight)
-
-
-ggplot(data = df_bacon) +
-  geom_point(aes(x = weight, y = estimate, 
-                 color = type, shape = type), size = 2) +
-  xlab("Weight") +
-  ylab("2x2 DD Estimate") +
-  geom_hline(yintercept = dd_estimate, color = "red") +
-  theme_minimal() + 
-  theme(
-    legend.title = element_blank(),
-    legend.background = element_rect(
-      fill="white", linetype="solid"),
-    legend.justification=c(1,1), 
-    legend.position=c(1,1)
-  )
-
-ggsave(here("figures/bacon_ddplot.jpg"))

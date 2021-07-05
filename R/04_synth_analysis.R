@@ -87,10 +87,10 @@ ggsave("figures/treatment_trends.jpg")
 vaccine_out %>% plot_differences() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
   labs(
-    title = "Ohio and Synthetic Ohio",
+    title = "Difference between Ohio and Synthetic Ohio",
     caption = "Timing of The Lottery Announcement",
     x="Weeks Relative to Lottery Announcement",
-    y="Percent Fully Vaccinated"
+    y="Difference in Percent Fully Vaccinated"
   ) 
 ggsave("figures/treatment_differences.jpg")
 
