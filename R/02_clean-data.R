@@ -8,7 +8,7 @@ library(stringr)
 library(here)
 library(glue)
 # This is the date that vax data was pulled, update when we pull final data
-date <- "2021-06-24"
+date <- "2021-07-04"
 
 fips <- read_csv(here::here("data-raw/fips.csv"))
 raw_cases <- read_csv(here::here(str_glue("data-raw/us_cases_{date}.csv")))
