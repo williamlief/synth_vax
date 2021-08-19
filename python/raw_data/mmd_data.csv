@@ -1,0 +1,57 @@
+year,geography,measure,adjustment,analysis,domain,condition,primary_sex,primary_age,primary_dual,fips,state,primary_race,primary_eligibility,primary_denominator,analysis_value
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,1,ALABAMA,All,All,"10,000+",41
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,2,ALASKA,All,All,"10,000+",37
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,4,ARIZONA,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,5,ARKANSAS,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,6,CALIFORNIA,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,8,COLORADO,All,All,"10,000+",48
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,9,CONNECTICUT,All,All,"10,000+",55
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,10,DELAWARE,All,All,"10,000+",56
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,11,DISTRICT OF COLUMBIA,All,All,"10,000+",40
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,12,FLORIDA,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,13,GEORGIA,All,All,"10,000+",45
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,15,HAWAII,All,All,"10,000+",45
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,16,IDAHO,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,17,ILLINOIS,All,All,"10,000+",49
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,18,INDIANA,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,19,IOWA,All,All,"10,000+",55
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,20,KANSAS,All,All,"10,000+",49
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,21,KENTUCKY,All,All,"10,000+",44
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,22,LOUISIANA,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,23,MAINE,All,All,"10,000+",45
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,24,MARYLAND,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,25,MASSACHUSETTS,All,All,"10,000+",55
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,26,MICHIGAN,All,All,"10,000+",46
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,27,MINNESOTA,All,All,"10,000+",54
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,28,MISSISSIPPI,All,All,"10,000+",42
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,29,MISSOURI,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,30,MONTANA,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,31,NEBRASKA,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,32,NEVADA,All,All,"10,000+",39
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,33,NEW HAMPSHIRE,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,34,NEW JERSEY,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,35,NEW MEXICO,All,All,"10,000+",39
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,36,NEW YORK,All,All,"10,000+",49
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,37,NORTH CAROLINA,All,All,"10,000+",52
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,38,NORTH DAKOTA,All,All,"10,000+",50
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,39,OHIO,All,All,"10,000+",50
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,40,OKLAHOMA,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,41,OREGON,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,42,PENNSYLVANIA,All,All,"10,000+",53
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,44,RHODE ISLAND,All,All,"10,000+",45
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,45,SOUTH CAROLINA,All,All,"10,000+",49
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,46,SOUTH DAKOTA,All,All,"10,000+",48
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,47,TENNESSEE,All,All,"10,000+",50
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,48,TEXAS,All,All,"10,000+",46
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,49,UTAH,All,All,"10,000+",49
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,50,VERMONT,All,All,"10,000+",48
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,51,VIRGINIA,All,All,"10,000+",51
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,53,WASHINGTON,All,All,"10,000+",47
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,54,WEST VIRGINIA,All,All,"10,000+",41
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,55,WISCONSIN,All,All,"10,000+",53
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,56,WYOMING,All,All,"10,000+",43
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,60,AMERICAN SAMOA,All,All,"1,000-4,999",9
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,66,GUAM,All,All,"10,000+",26
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,69,NORTHERN MARIANAS,All,All,"1,000-4,999",12
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,72,PUERTO RICO,All,All,"10,000+",20
+2019,State/Territory,Preventive Services,Unsmoothed actual,Base measure,Preventive Services,"Influenza Virus Vaccine",All,All,Dual & non-dual,78,VIRGIN ISLANDS,All,All,"10,000+",13
