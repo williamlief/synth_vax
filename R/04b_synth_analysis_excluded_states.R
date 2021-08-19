@@ -6,8 +6,21 @@ library(tidyverse)
 library(tidysynth)
 library(stargazer)
 
-dat <- readRDS(here("data/weekly_data_2021-06-24.rds"))  %>% 
-  filter(! state %in% c("AR","CA","CO","KY","MD","NY","OR","WA","WV","ME","MA","DE","NC",'NV',"NM","LA"))
+dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
+
+announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
+  mutate(state = str_trim(state))
+
+excluded_states <- announce_dates %>% 
+  filter(!is.na(lottery_announce_date)) %>% 
+  filter(state != "OH")
+print(excluded_states$state)
+# [1] "AR" "CA" "CO" "DE" "IL" "KY" "LA" "ME" "MD" "MA" "MI" "NV" "NM"
+# [14] "NY" "NC" "OR" "WA" "WV" 
+
+dat <- dat %>% 
+  tidylog::anti_join(excluded_states)
+
 
 # Train Synthetic Control Model
 vaccine_out <-
