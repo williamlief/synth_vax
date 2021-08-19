@@ -1,3 +1,7 @@
+# Overview 
+
+This directory obtains auxillary covariate data. Covariate use was excluded from our initial pre-registration but included to inform the multiverse analysis of different reasonable modelling decisions. 
+
 # Data sources and variable information
 
 ## Data sources
