@@ -8,3 +8,5 @@ A preprint of our findings is available at https://osf.io/a6de5/. Our pre-regist
 * data/ contains our processed analysis data sets. 
 * figures/ contains all output figures 
 * output/ contains pre-registered synthetic control weights and power estimates
+* output-multiverse contains output from the multiverse of models. 
+* python/ contains python code to obtain and prepare auxillary covariate data
