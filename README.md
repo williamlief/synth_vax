@@ -2,14 +2,21 @@
 
 # Did Ohio’s Vaccine Lottery Increase Vaccination Rates? A Pre-Registered, Synthetic Control Study
 
-
-
 A preprint of our findings is available at https://osf.io/a6de5/. Our pre-registered analysis plan is also available at https://osf.io/g6xns/
 
-* R/ contains all scripts used in the analysis, including packages and sessionInfo for future reproducibility. 
-* data-raw/ contains snapshots of the raw downloaded csv data of vaccination rates. 
-* data/ contains our processed analysis data sets. 
-* figures/ contains all output figures 
-* output/ contains pre-registered synthetic control weights and power estimates
-* output-multiverse contains output from the multiverse of models. 
-* python/ contains python code to obtain and prepare auxillary covariate data
+## Directory Info
+
+* `R/` contains all scripts used in the analysis, including packages and sessionInfo for future reproducibility 
+* `data-raw/` contains snapshots of the raw downloaded csv data of vaccination rates 
+* `data/` contains our processed analysis data sets
+* `figures/` contains all output figures
+* `output/` contains pre-registered synthetic control weights and power estimates
+* `output-multiverse/` contains output from the multiverse of models 
+* `python/` contains python code to obtain and prepare auxillary covariate data
+
+## Media Mentions 
+
+* Politifact ["Have vaccine lotteries worked? Studies so far show mixed results"](https://www.politifact.com/article/2021/aug/19/have-vaccine-lotteries-worked-studies-so-far-show-/) August 19, 2021
+* Science Magazine ["Cash for shots? Studies suggest payouts improve vaccination rates"](https://www.sciencemag.org/news/2021/08/cash-shots-studies-suggest-payouts-improve-vaccination-rates) August 4th, 2021
+
+
