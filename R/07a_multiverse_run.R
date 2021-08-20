@@ -367,6 +367,7 @@ multiverse_run <- function(model_num,
 # use furrr package to leverage multiple cores, may need to
 # adjust for your machine
 plan(multisession, workers = availableCores())
+set.seed(428438)
 
 multiverse_output <- multiverse_spec %>%
   future_pmap(., possibly(multiverse_run, otherwise = "error"), data = analysisdat,
