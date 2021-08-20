@@ -7,8 +7,10 @@ library(readr)
 library(stringr)
 library(here)
 library(glue)
-# This is the date that vax data was pulled, update when we pull final data
-date <- "2021-07-04"
+
+# This is the date that raw vax data was pulled
+# used in name when writing clean data
+date <- "2021-08-18"
 
 fips <- read_csv(here::here("data-raw/fips.csv"))
 raw_cases <- read_csv(here::here(str_glue("data-raw/us_cases_{date}.csv")))
@@ -51,8 +53,8 @@ weekly <- daily %>%
             .groups = "drop") %>% 
   mutate(centered_week = week - isoweek(announce_date))
 
-write_rds(daily, str_glue(here("data/daily_data_{Sys.Date()}.rds")))
-write_rds(weekly, str_glue(here("data/weekly_data_{Sys.Date()}.rds")))
+write_rds(daily, str_glue(here("data/daily_data_{date}.rds")))
+write_rds(weekly, str_glue(here("data/weekly_data_{date}.rds")))
 
 
   

@@ -9,13 +9,20 @@ library(augsynth)
 library(lubridate)
 library(tidysynth)
 
-annual_cov <- read_csv("python/annual_dataset_processed.csv")
-daily_cov <- read_csv("python/daily_dataset_processed.csv")
+annual_cov <- read_csv(here("python/annual_dataset_processed.csv"))
+daily_cov <- read_csv(here("python/daily_dataset_processed.csv"))
 vax_case <- readRDS(here("data/daily_data_2021-08-18.rds"))
 
 analysisdat <- vax_case %>%
-  tidylog::left_join(annual_cov %>% select(-state_abb)) %>% 
-  tidylog::left_join(daily_cov %>% select(-state_abb))
+  select(state, fips, day, date, people_fully_vaccinated_per_hundred, 
+         people_vaccinated_per_hundred, total_vaccinations_per_hundred) %>% 
+  tidylog::left_join(annual_cov %>% select(-state_abb), 
+                     by = "fips") %>% 
+  tidylog::left_join(daily_cov %>% select(-state_abb), 
+                     by = c("fips", "date")) 
+# NOTE: the mobility covs start on 1/1 while the vax data starts on 1/12 for 11 days that dont match
+# the mobility covs stop on 8/6 and the vax data stops on 8/17, also 11 days. 
+# So the mismatch counts are identical
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
   mutate(state = str_trim(state))
@@ -29,7 +36,7 @@ announce_date <- announce_dates %>% filter(state == "OH") %>%
 # parameters for data processing: donor states, time window, covariates, outcome variable
 
 data_params <- list(
-
+  
   states_to_include = list(
     full = sort(unique(analysisdat$state)), 
     no_lottery = announce_dates %>% 
@@ -51,8 +58,8 @@ data_params <- list(
   # Modelling Parameters
   covariates = list(
     none = "NULL",
-    annual_demo = names(annual_cov[3:20]),
-    annual_mobility = c(names(annual_cov[3:20]), names(daily_cov)[3:9])
+    annual_demo = names(annual_cov[c(3, 5:6, 8:20)]),
+    annual_mobility = c(names(annual_cov[c(3, 5:6, 8:20)]), names(daily_cov)[4:9])
   ),
   
   outcome = list(
@@ -150,7 +157,7 @@ multiverse_run <- function(model_num,
     # note: this was much cleaner w/o aggregation inside the loop, but because of 
     # the day cutoffs it is more accurate to do it here
     mutate(week = isoweek(day)) %>% 
-    group_by(state, fips, week) %>% 
+    group_by(state, week) %>% 
     summarize(across(c(people_vaccinated_per_hundred, 
                        total_vaccinations_per_hundred,
                        people_fully_vaccinated_per_hundred), 
@@ -218,12 +225,12 @@ multiverse_run <- function(model_num,
         generate_predictor(time_window = -02, lagged_outcome02 = outcome) %>%
         generate_predictor(time_window = -01, lagged_outcome01 = outcome)
       
-        
-        if(covariates[[1]] != "NULL") {
-          setup_synth <- setup_synth %>% 
-            generate_predictor(time_window = pre_window:-1,
-                               across(all_of(covariates), mean, na.rm = T))
-        }
+      
+      if(covariates[[1]] != "NULL") {
+        setup_synth <- setup_synth %>% 
+          generate_predictor(time_window = pre_window:-1,
+                             across(all_of(covariates), mean, na.rm = T))
+      }
     }
     
     synth_out <- setup_synth %>% 
@@ -288,12 +295,12 @@ multiverse_run <- function(model_num,
         mutate(treat = state == treated_state & centered_week >= 0)
       
       augsynth(as.formula(formula), 
-                               # Fixed params          
-                               unit = state, time = centered_week, data = data,
-                               t_int = 0, 
-                               # variable params
-                               progfunc = as_progfunc, fixedeff = as_fixedeff,
-                               scm = T)
+               # Fixed params          
+               unit = state, time = centered_week, data = data,
+               t_int = 0, 
+               # variable params
+               progfunc = as_progfunc, fixedeff = as_fixedeff,
+               scm = T)
     }
     augsynth_out <- states_to_include %>% 
       map(quietly(wrap_augsynth))
@@ -314,7 +321,7 @@ multiverse_run <- function(model_num,
       map(summary)
     
     get_augsynth_metrics <- function(as_sum) {
-
+      
       pre_mspe <- as_sum$att %>% 
         filter(Time < 0) %>% 
         summarize(pre_mspe = mean(Estimate^2))
@@ -340,13 +347,13 @@ multiverse_run <- function(model_num,
     as_results <- as_results %>% 
       mutate(mspe_ratio = post_mspe/pre_mspe,
              mspe_rank = rank(mspe_ratio), 
-             average_rank = rank(average_difference), 
-             last_period_rank = rank(last_period_difference), 
+             average_rank = rank(average_diff), 
+             last_period_rank = rank(last_period_diff), 
              type = ifelse(unit_name == "OH", "Treated", "Donor"), 
              fishers_exact_pvalue = mspe_rank / n()) %>% 
       left_join(weights, by = "unit_name") %>% 
       mutate(model_num = model_num)
-
+    
     # write the full augsynth output to disk
     saveRDS(augsynth_out, paste0(output, "/model_", model_num, ".rds"))
     # function returns selected metrics in memory
@@ -357,19 +364,19 @@ multiverse_run <- function(model_num,
 
 # Run Multiverse Models ---------------------------------------------------
 
-# use furrr package to leverage multiple cores, may need to 
+# use furrr package to leverage multiple cores, may need to
 # adjust for your machine
-plan(multisession, workers = 2)
+plan(multisession, workers = availableCores())
 
-multiverse_output <- multiverse_spec %>% 
-  future_pmap(., possibly(multiverse_run, otherwise = "error"), data = analysisdat, 
-              .options = furrr_options(seed = TRUE), 
-              .progress = T) 
+multiverse_output <- multiverse_spec %>%
+  future_pmap(., possibly(multiverse_run, otherwise = "error"), data = analysisdat,
+              .options = furrr_options(seed = TRUE),
+              .progress = T)
 
 names(multiverse_output) <- multiverse_spec$model_num
 
-# Note on output: weight column captures each state's weight in the OH (true) 
-# synthetic control model. All other columns hold the specific states output from 
+# Note on output: weight column captures each state's weight in the OH (true)
+# synthetic control model. All other columns hold the specific states output from
 # the permutation test
 saveRDS(multiverse_output, "output-multiverse/multiverse_output.RDS")
 
