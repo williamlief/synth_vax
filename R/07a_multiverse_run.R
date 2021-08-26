@@ -45,8 +45,7 @@ data_params <- list(
   
   pretreat_start = list(
     full = "2021-01-12",
-    bw_start = "2021-02-19", # B&W start
-    post_ration = "2021-03-25" # Press release on mass vaccination sites in OH: https://coronavirus.ohio.gov/wps/portal/gov/covid-19/resources/news-releases-news-you-can-use/covid-19-update-03-25-21
+    bw_start = "2021-02-19" # B&W start - CDC data
   ),
   
   post_stop = list(
@@ -97,12 +96,10 @@ tidysynth_opts <- list(
 # augsynth
 augsynth_opts <- list(
   progfunc = list(
-    none = "none",
     ridge = "ridge"
   ),
   fixedeff = list(
-    true = TRUE, 
-    false = FALSE
+    true = TRUE
   )
 )
 
@@ -117,6 +114,7 @@ multiverse_spec <-
   crossing(model_spec, data_spec) %>% 
   # exclusions
   tidylog::filter(!(ts_cov_use == "full_path" & covariates != "NULL")) %>% # no covariates with full_path
+  tidylog::filter(!(ts_cov_use == "use_covs" & covariates == "NULL")) %>% # no covariates with NULL covariates - this is bad
   mutate(model_num = as.character(row_number())) %>% 
   as.data.frame() 
 

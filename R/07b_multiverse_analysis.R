@@ -8,8 +8,49 @@ multiverse_stack <- multiverse_output %>%
   group_by(model_num) %>% 
   mutate(norm_weight = abs(weight) / sum(abs(weight), na.rm = T)) %>% 
   full_join(multiverse_spec %>% 
-              mutate(across(where(is.list), function(x) names(x))))
+              mutate(
+                across(c(pretreat_start, post_stop), function(x) str_remove(unlist(x), "2021-")),
+                across(where(is.list), function(x) names(x)))) %>% 
+  # TODO: remove these specification from 07a then delete this code
+  tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
+                    (method == "tidysynth" & 
+                       (ts_cov_use == "full_path" | 
+                          (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
+  tidylog::filter(pretreat_start != "03-25")
 
+model_fit <- multiverse_stack %>% 
+  filter(unit_name != "OH") %>% 
+  group_by(model_num) %>% 
+  summarize(avg_post_mspe = mean(post_mspe))
+
+dat <- multiverse_stack %>% 
+  filter(unit_name == "OH") %>% 
+  tidylog::left_join(model_fit) %>%
+  # Formatting vars for plotting
+  mutate(long_time = paste(pretreat_start, post_stop, sep = ": "), 
+         covariates = case_when(
+           covariates == "annual_demo" ~ "Annual Covariates", 
+           covariates == "annual_mobility" ~ "Annual + Mobility", 
+           covariates == "none" ~ "None"
+         ), 
+         covariates = factor(covariates, levels = c(
+           "None", 
+           "Annual Covariates", 
+           "Annual + Mobility"
+         )),
+         method = case_when(method == "augsynth" ~ "Augsynth", 
+                            method == "tidysynth" ~ "Tidysynth"),
+         states_to_include = case_when(
+           states_to_include == "full" ~ "All States + DC",
+           states_to_include == "no_lottery" ~ "Non-Lottery Adopting"))
+
+
+# Labelling stuff
+outcome.labs <- c("Fully Vaccinated", "First Dose", "Total Doses")
+names(outcome.labs) <- c("full_vax", "first_dose", "total_doses")
+
+states.labs <- c("All States + DC", "Non Lottery Adopting States")
+names(states.labs) <- c("full", "no_lottery")
 
 # check pre-registered model ----------------------------------------------
 
@@ -22,18 +63,18 @@ pre_reg_model <- multiverse_spec %>%
   filter(row_number() == 1) %>%  # this is a hack, having issues subsetting to correct states_to_include
   pull(model_num)
 
-pre_reg <- multiverse_output[[pre_reg_model]]
+pre_reg <- dat %>% filter(model_num == pre_reg_model)
 
 # this is very close on all measures to the pre-registration.
 # Output values are within a few hundreths 
 # Weight for WI and HI are off by 0.001
-pre_reg %>% filter(unit_name == "OH") %>% t()
+t(pre_reg)
 
 registered_weights <- read_csv('output/unit_weights.csv') %>% 
   rename(unit_name = unit, 
          prereg_w = weights)
 
-weight_compare <- pre_reg %>% 
+weight_compare <- multiverse_output[[pre_reg_model]] %>% 
   filter(unit_name != "OH") %>% 
   left_join(registered_weights, by = "unit_name") %>% 
   mutate(dif = weight - prereg_w)
@@ -41,26 +82,68 @@ weight_compare <- pre_reg %>%
 summary(weight_compare$dif)
 
 
+
+
 # Compare Weights Across Multiverse -----------------------------------------
 
 ggplot(data = multiverse_stack %>% 
-         filter(unit_name != "OH"),
+         filter(unit_name != "OH") %>% 
+         filter(model_num %in% dat$model_num) %>% 
+         # filter(outcome == !!outcome) %>% 
+         select(-post_stop) %>% # post period doesnt impact weights, so all weights are triplicated
+         distinct(),
        aes(x = fct_rev(unit_name), y = norm_weight)) +
-  facet_wrap(.~outcome) +
+  facet_wrap(states_to_include~outcome,
+             scales = "free_y",
+             labeller = labeller(outcome = outcome.labs,
+                                 states_to_include = states.labs)) +
   geom_boxplot() + 
   coord_flip() +
   theme_minimal() +
+  theme(axis.text.y = element_text(size = 6)) +
   labs(title = "Boxplot of State Weights in Synthetic Counterfactuals for Multiverse of Models", 
        x = NULL, y = "Weight normalized by sum of absolute model weights")
 
+ggsave("figures/multiverse_weights.png")
 
 # Compare Estimates -------------------------------------------------------
-# this is some crude plotting code, need to revise
-ggplot(data = multiverse_stack %>% 
-         filter(unit_name == "OH"),
-       aes(51-mspe_rank, last_period_diff, 
-           color = post_stop)) +
-  facet_wrap(.~outcome) +
-  geom_point() +
-  geom_vline(aes(xintercept = 45))
 
+ 
+ggplot(data  = dat %>% filter(avg_post_mspe < 50), 
+       aes(long_time, last_period_diff, 
+           color = covariates, alpha = avg_post_mspe)) +
+  geom_point() +
+  # highlight prereg model
+  geom_point(data = dat %>% filter(model_num == pre_reg_model), 
+             size = 3, color = "red", shape = 8) +
+  # highlight lowest mspe models
+  geom_point(data = dat %>% group_by(outcome) %>% 
+               filter(avg_post_mspe == min(avg_post_mspe)), 
+             size = 3, color = "red", shape = 4) +
+  facet_grid(outcome~method*states_to_include, 
+             labeller = labeller(outcome = outcome.labs)) +
+  geom_hline(yintercept = 0) +
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(title = "Multiverse Estimates for Final Difference in Outcomes between Ohio and Synthetic Comparison",
+       subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
+       x = NULL,
+       y = "Estimated Difference in Outcome in Final Time Period",
+       color = "Covariate Adjustment",
+       caption = "Pre-registered model indicated with *, best fitting models indicated with X") +
+  scale_color_brewer(palette="Dark2") +
+  scale_alpha(range = c(1, 0.1), guide = "none")
+
+ggsave("figures/multiverse_estimates.png")
+
+
+# MSPE stats --------------------------------------------------------------
+
+summary(dat$avg_post_mspe)
+dat %>% filter(model_num == pre_reg_model) %>% pull(avg_post_mspe)
+
+
+dat %>% group_by(outcome) %>% 
+  filter(avg_post_mspe == min(avg_post_mspe)) %>% 
+  t()
+         
