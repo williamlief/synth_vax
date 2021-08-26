@@ -15,7 +15,7 @@ announce_dates <- raw_announce_dates %>%
   select(state, state_announce_date, state_announce_week) 
 
 
-dat <- readRDS(here("data/weekly_data_2021-07-04.rds")) %>% 
+dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) %>% 
   tidylog::left_join(announce_dates) %>% 
   mutate(
     centered_week = week - state_announce_week,
@@ -94,9 +94,9 @@ dynamic_est <- feols(c(people_fully_vaccinated_per_hundred, daily_vaccinations_p
 
 etable(avg_est[1], dynamic_est[1], avg_est[2], dynamic_est[2],
        digits = 2, digits.stats = 2, 
-       drop = c(as.character(5:7), as.character(-24:-5)),
+       drop = c(as.character(5:14), as.character(-24:-5)),
        label = "tab:ddest",
        title = "Difference in Difference Estimates",
        tex = TRUE,
-       notes = "Weekly effect estimates relative to the announcement week. Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors.")
+       notes = "Weekly effect estimates relative to the announcement week. Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors. Models include data from 01/12/2021 to 08/18/2021")
   
