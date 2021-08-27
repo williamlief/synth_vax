@@ -46,7 +46,7 @@ weekly <- daily %>%
                      daily_vaccinations_per_million), 
                    sum, na.rm = T), 
             across(c(tot_cases_per_million, tot_death_per_million, 
-                     people_fully_vaccinated_per_hundred), 
+                     people_fully_vaccinated_per_hundred,total_vaccinations_per_hundred,people_vaccinated_per_hundred), 
                    max, na.rm = T),
             n_rec = n(), 
             first_day = min(day), last_day = max(day),
