@@ -1,4 +1,4 @@
-# This script reruns the synthetic analysis excluding states that adopted lotteries 
+This script reruns the synthetic analysis excluding states that adopted lotteries 
 # after Ohio.
 
 library(here)
@@ -69,7 +69,7 @@ vaccine_out %>%
 
 vaccine_out %>% plot_weights() + 
   labs(title="Synthetic Control Weights")   
-ggsave(here("figures/alt_weights.jpg"))
+ggsave(here("figures/ex_lotto_weights.jpg"))
 
 # Balance Table
 balance_table <- vaccine_out %>%
@@ -94,7 +94,7 @@ vaccine_out %>% plot_trends() +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
-ggsave("figures/alt_treatment_trends.jpg")
+ggsave("figures/ex_lotto_treatment_trends.jpg")
 
 vaccine_out %>% plot_differences() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
@@ -104,7 +104,7 @@ vaccine_out %>% plot_differences() +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
-ggsave("figures/alt_treatment_differences.jpg")
+ggsave("figures/ex_lotto_treatment_differences.jpg")
 
 # Main result values
 mspe <- vaccine_out %>% 
@@ -146,3 +146,29 @@ vaccine_out %>% plot_placebos() +
     y="Percent Fully Vaccinated"
   ) 
 ggsave(here("figures/alt_pretreatment_synth.jpg"))
+
+
+dat<- dat %>% mutate(post_ohio=state=="OH" & centered_week>=0)
+# Augsynth Conformal Confidence Intervals
+asynth<-augsynth::augsynth(people_fully_vaccinated_per_hundred~post_ohio,unit = state,time = centered_week,data = dat)
+state_names<-rownames(asynth$weights)
+augsynth_weights<-asynth$weights %>% as_tibble() %>% bind_cols(state_names) %>% select(state=...2,a_weight=V1)
+
+
+weight_differences<-vaccine_out %>%
+  grab_unit_weights() %>%
+  left_join(augsynth_weights, by = c("unit" = "state")) %>%
+  mutate(diff = weight - a_weight) 
+
+weight_differences %>% summarise(sum(abs(diff))) # Check that differenace
+
+weight_differences %>% arrange(desc(diff))
+
+summary(asynth,alpha=.05)
+plot(asynth) +
+  labs(
+    title="Percent Difference in Fully Vaccinated Rates",
+    subtitle="Confidence Intervals Estimated Using Conformal Inference",
+    x="Weeks Relative to Lottery Announcement"
+  )
+ggsave(here("figures/conformal_inference_asynth_ex_lotto.jpg"))

@@ -8,6 +8,8 @@ library(fixest)
 # announce data for all states
 raw_announce_dates <- read_csv("data-raw/lottery_announce_dates.csv")
 
+
+
 announce_dates <- raw_announce_dates %>% 
   mutate(state_announce_date = mdy(lottery_announce_date), 
          state_announce_week = isoweek(state_announce_date),
@@ -20,7 +22,8 @@ dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) %>%
   mutate(
     centered_week = week - state_announce_week,
     post_announce = if_else(is.na(state_announce_week), 0, 
-                            as.numeric(week > state_announce_week)))
+                            as.numeric(week > state_announce_week))) 
+
 
 # Double checking the treatment states and first week of treatment (always week after announcement)
 dat %>% filter(post_announce == 1) %>% 
@@ -55,19 +58,72 @@ ggsave(here("figures/vax_byannounce_bystate.jpg"))
 
 # augsynth model ----------------------------------------------------------
 
-ppool_syn <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce, 
+ppool_syn_full <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce, 
                         state, week, n_leads = max(dat$centered_week, na.rm = T),
                         dat)
 # nu is set to default, which is a heuristic balance between completely separate 
 # comparisons and a fully pooled model. In this case it comes out to 0.27. 
-print(ppool_syn$nu)
-ppool_syn_summ <- summary(ppool_syn)
+print(ppool_syn_full$nu)
+(ppool_syn_full_summ <- summary(ppool_syn))
 
 plot(ppool_syn_summ) + 
   labs(y = "Difference in Percent Fully Vaccinated", 
-       title = "Multistate Augmented Synthetic Control",
+       title = "Multistate Augmented Synthetic Control (Fully Vaccinated)",
+       subtitle = "Difference between Treated States and Synthetic Comparisons")
+ggsave(here("figures/multisynth_full_vax.jpg"))
+
+
+
+ppool_syn_initial_dose <- multisynth(people_vaccinated_per_hundred ~ post_announce, 
+                        state, week, n_leads = max(dat$centered_week, na.rm = T),
+                        dat)
+# nu is set to default, which is a heuristic balance between completely separate 
+# comparisons and a fully pooled model. In this case it comes out to 0.27. 
+print(ppool_syn_initial_dose$nu)
+(ppool_syn_initial_dose_summ <- summary(ppool_syn_initial_dose))
+
+plot(ppool_syn_initial_dose_summ) + 
+  labs(y = "Difference in  Percent First Doses Doses", 
+       title = "Multistate Augmented Synthetic Control (First Dose)",
+       subtitle = "Difference between Treated States and Synthetic Comparisons")
+ggsave(here("figures/multisynth_initial_dose.jpg"))
+
+
+
+
+ppool_syn_total_dose <- multisynth(total_vaccinations_per_hundred ~ post_announce, 
+                                     state, week, n_leads = max(dat$centered_week, na.rm = T),
+                                     dat)
+# nu is set to default, which is a heuristic balance between completely separate 
+# comparisons and a fully pooled model. In this case it comes out to 0.27. 
+print(ppool_syn_total_dose$nu)
+(ppool_syn_total_dose_summ <- summary(ppool_syn_total_dose))
+
+plot(ppool_syn_total_dose_summ) + 
+  labs(y = "Difference in Total Doses per Hundred", 
+       title = "Multistate Augmented Synthetic Control (Total Doses)",
        subtitle = "Difference between Treated States and Synthetic Comparisons")
 ggsave(here("figures/multisynth_all.jpg"))
+
+
+ppool_syn_hundred <- multisynth(total_vaccinations_per_hundred ~ post_announce, 
+                                state, week, n_leads = max(dat$centered_week, na.rm = T),
+                                dat)
+# nu is set to default, which is a heuristic balance between completely separate 
+# comparisons and a fully pooled model. In this case it comes out to 0.27. 
+print(ppool_syn$nu)
+(ppool_syn_summ <- summary(ppool_syn))
+
+plot(ppool_syn_summ) + 
+  labs(y = "Initial Doese", 
+       title = "Multistate Augmented Synthetic Control",
+       subtitle = "Difference between Treated States and Synthetic Comparisons")
+ggsave(here("figures/multisynth_total_doses.jpg"))
+
+
+
+
+
 
 # basic two-way fe --------------------------------------------------------
 
@@ -100,3 +156,5 @@ etable(avg_est[1], dynamic_est[1], avg_est[2], dynamic_est[2],
        tex = TRUE,
        notes = "Weekly effect estimates relative to the announcement week. Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors. Models include data from 01/12/2021 to 08/18/2021")
   
+
+
