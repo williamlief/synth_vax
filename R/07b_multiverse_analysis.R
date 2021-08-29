@@ -1,22 +1,32 @@
 library(tidyverse)
+library(here)
 
-multiverse_output <- readRDS("output-multiverse/multiverse_output.RDS")
-multiverse_spec <- readRDS("output-multiverse/multiverse_spec.RDS")
+multiverse_output <- readRDS(here::here("output-multiverse/multiverse_output.RDS"))
+multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
+  mutate(method=if_else(as_progfunc=="none"&as_fixedeff=="FALSE","Classical SCM",method)) %>%
+  filter(
+    (method=="Classical SCM" & as_progfunc=="none" & as_fixedeff=="FALSE") 
+    |
+    (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE")
+      )
 
+names(multiverse_spec)
 multiverse_stack <- multiverse_output %>% 
   bind_rows(.id = "model_num") %>% 
   group_by(model_num) %>% 
   mutate(norm_weight = abs(weight) / sum(abs(weight), na.rm = T)) %>% 
-  full_join(multiverse_spec %>% 
+  inner_join(multiverse_spec %>% 
               mutate(
                 across(c(pretreat_start, post_stop), function(x) str_remove(unlist(x), "2021-")),
-                across(where(is.list), function(x) names(x)))) %>% 
+                across(where(is.list), function(x) names(x))))#  %>%
+
+  #%>% 
   # TODO: remove these specification from 07a then delete this code
-  tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
-                    (method == "tidysynth" & 
-                       (ts_cov_use == "full_path" | 
-                          (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
-  tidylog::filter(pretreat_start != "03-25")
+  # tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
+  #                   (method == "tidysynth" & 
+  #                      (ts_cov_use == "full_path" | 
+  #                         (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
+  # tidylog::filter(pretreat_start != "03-25")
 
 model_fit <- multiverse_stack %>% 
   filter(unit_name != "OH") %>% 
@@ -39,7 +49,7 @@ dat <- multiverse_stack %>%
            "Annual + Mobility"
          )),
          method = case_when(method == "augsynth" ~ "Augsynth", 
-                            method == "tidysynth" ~ "Tidysynth"),
+                            method == "Classical SCM" ~ "Classical SCM"),
          states_to_include = case_when(
            states_to_include == "full" ~ "All States + DC",
            states_to_include == "no_lottery" ~ "Non-Lottery Adopting"))
@@ -55,8 +65,8 @@ names(states.labs) <- c("full", "no_lottery")
 # check pre-registered model ----------------------------------------------
 
 pre_reg_model <- multiverse_spec %>% 
-  filter(method == 'tidysynth', 
-         ts_cov_use == "full_path",
+  filter(method == 'Classical SCM', 
+         ts_cov_use == "NULL",
          pretreat_start == "2021-01-12",
          post_stop == "2021-06-24", 
          outcome == "people_fully_vaccinated_per_hundred") %>% 
@@ -147,3 +157,12 @@ dat %>% group_by(outcome) %>%
   filter(avg_post_mspe == min(avg_post_mspe)) %>% 
   t()
          
+
+multiverse_stack %>% arrange(pre_mspe) %>% mutate(pre_mspe_rank=row_number(), average_pre_mspe=mean(pre_mspe)) %>%
+  filter(unit_name=="OH")->OHIO
+
+
+OHIO %>% group_by(outcome) %>% summarise(mean(last_period_diff<0))
+OHIO %>% ggplot(aes(pre_mspe_rank)) +
+  geom_histogram() +
+  facet_wrap(vars(method,covariates,outcome))

@@ -5,7 +5,7 @@ library(here)
 library(tidyverse)
 library(tidysynth)
 library(stargazer)
-
+library(bpCausal)
 dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
@@ -147,10 +147,20 @@ vaccine_out %>% plot_placebos() +
   ) 
 ggsave(here("figures/alt_pretreatment_synth.jpg"))
 
-
+asynth<-NULL
 dat<- dat %>% mutate(post_ohio=state=="OH" & centered_week>=0)
 # Augsynth Conformal Confidence Intervals
-asynth<-augsynth::augsynth(people_fully_vaccinated_per_hundred~post_ohio,unit = state,time = centered_week,data = dat)
+asynth <- augsynth::augsynth(
+  people_fully_vaccinated_per_hundred ~ post_ohio, 
+  unit = state, 
+  time = centered_week, 
+  data = dat,
+  progfunc= "None",
+  fixedeff= FALSE
+  )
+asynth
+summary(asynth)
+plot(asynth)
 state_names<-rownames(asynth$weights)
 augsynth_weights<-asynth$weights %>% as_tibble() %>% bind_cols(state_names) %>% select(state=...2,a_weight=V1)
 
@@ -164,7 +174,7 @@ weight_differences %>% summarise(sum(abs(diff))) # Check that differenace
 
 weight_differences %>% arrange(desc(diff))
 
-summary(asynth,alpha=.05)
+summary(asynth,alpha=.1)
 plot(asynth) +
   labs(
     title="Percent Difference in Fully Vaccinated Rates",
@@ -172,3 +182,50 @@ plot(asynth) +
     x="Weeks Relative to Lottery Announcement"
   )
 ggsave(here("figures/conformal_inference_asynth_ex_lotto.jpg"))
+
+
+#summary(asynth,alpha=.1,inf_type="jackknife+")
+plot(asynth) +
+  labs(
+    title="Percent Difference in Fully Vaccinated Rates",
+    subtitle="Confidence Intervals Estimated Using Conformal Inference",
+    x="Weeks Relative to Lottery Announcement"
+  )
+ggsave(here("figures/jackknife+_inference_asynth_ex_lotto.jpg"))
+?bpCausal
+
+dat<- dat %>% arrange(fips,centered_week)
+
+
+out1 <- bpCausal(data = dat %>% as.data.frame(), ## simulated dataset  
+                 index = c("fips", "week"), ## names for unit and time index
+                 Yname = "people_fully_vaccinated_per_hundred", ## outcome variable
+                 Dname = "post_ohio", ## treatment indicator  
+                  Xname = c(),
+                  Zname = c(),
+                  Aname = c(),
+                 re = "both",   # two-way random effect: choose from ("unit", "time", "none", "both") 
+                 ar1 = TRUE,    # whether the time-level random effects is ar1 process or jsut multilevel (independent)
+                 r = 10,        # factor numbers 
+                 niter = 15000, # number of mcmc draws
+                 burn = 5000,   # burn-in draws 
+                 xlasso = 0,    ## whether to shrink constant coefs (1 = TRUE, 0 = FALSE)
+                 zlasso = 0,    ## whether to shrink unit-level random coefs (1 = TRUE, 0 = FALSE)
+                 alasso = 0,    ## whether to shrink time-level coefs (1 = TRUE, 0 = FALSE)
+                 flasso = 0,    ## whether to shrink factor loadings (1 = TRUE, 0 = FALSE)
+                 a1 = 0.001, a2 = 0.001, ## parameters for hyper prior shrink on beta (diffuse hyper priors)
+                 b1 = 0.001, b2 = 0.001, ## parameters for hyper prior shrink on alpha_i
+                 c1 = 0.001, c2 = 0.001, ## parameters for hyper prior shrink on xi_t
+                 p1 = 0.001, p2 = 0.001
+                 ) ## parameters for hyper prior shrink on factor terms
+
+
+out1
+coefSummary(out1)
+
+
+eout1 <- effSummary(out1,   ## summary treatment effects
+                    usr.id = 39, ## treatment effect for individual treated units, if input NULL, calculate average TT
+                    cumu = FALSE,  ## whether to calculate culmulative treatment effects
+                    rela.period = TRUE) ## whether to use time relative to the occurence of treatment (1 is the first post-trea
+eout1
