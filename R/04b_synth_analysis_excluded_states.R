@@ -1,4 +1,4 @@
-This script reruns the synthetic analysis excluding states that adopted lotteries 
+#This script reruns the synthetic analysis excluding states that adopted lotteries 
 # after Ohio.
 
 library(here)
@@ -6,6 +6,20 @@ library(tidyverse)
 library(tidysynth)
 library(stargazer)
 library(bpCausal)
+
+
+
+placebo_test <- function(s) {
+  # Takes in a state abbreviation  and runs an augsynth estimate with that state
+
+  placebo.panel <- dat %>% mutate(placebo_post = if_else(state == s & centered_week >= 0, 1L, 0L))
+  placebo.est <- augsynth(people_fully_vaccinated_per_hundred ~ placebo_post,
+    unit = state, time = centered_week,
+    data = placebo.panel, progfun = "None", fixedeff = FALSE
+  )
+  cbind(summary(placebo.est)$att, state = s)
+}
+
 dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
@@ -174,7 +188,7 @@ weight_differences %>% summarise(sum(abs(diff))) # Check that differenace
 
 weight_differences %>% arrange(desc(diff))
 
-summary(asynth,alpha=.1)
+summary(asynth,alpha=.05)
 plot(asynth) +
   labs(
     title="Percent Difference in Fully Vaccinated Rates",
@@ -184,7 +198,7 @@ plot(asynth) +
 ggsave(here("figures/conformal_inference_asynth_ex_lotto.jpg"))
 
 
-#summary(asynth,alpha=.1,inf_type="jackknife+")
+
 plot(asynth) +
   labs(
     title="Percent Difference in Fully Vaccinated Rates",
@@ -192,40 +206,68 @@ plot(asynth) +
     x="Weeks Relative to Lottery Announcement"
   )
 ggsave(here("figures/jackknife+_inference_asynth_ex_lotto.jpg"))
-?bpCausal
+
 
 dat<- dat %>% arrange(fips,centered_week)
 
 
-out1 <- bpCausal(data = dat %>% as.data.frame(), ## simulated dataset  
-                 index = c("fips", "week"), ## names for unit and time index
-                 Yname = "people_fully_vaccinated_per_hundred", ## outcome variable
-                 Dname = "post_ohio", ## treatment indicator  
-                  Xname = c(),
-                  Zname = c(),
-                  Aname = c(),
-                 re = "both",   # two-way random effect: choose from ("unit", "time", "none", "both") 
-                 ar1 = TRUE,    # whether the time-level random effects is ar1 process or jsut multilevel (independent)
-                 r = 10,        # factor numbers 
-                 niter = 15000, # number of mcmc draws
-                 burn = 5000,   # burn-in draws 
-                 xlasso = 0,    ## whether to shrink constant coefs (1 = TRUE, 0 = FALSE)
-                 zlasso = 0,    ## whether to shrink unit-level random coefs (1 = TRUE, 0 = FALSE)
-                 alasso = 0,    ## whether to shrink time-level coefs (1 = TRUE, 0 = FALSE)
-                 flasso = 0,    ## whether to shrink factor loadings (1 = TRUE, 0 = FALSE)
-                 a1 = 0.001, a2 = 0.001, ## parameters for hyper prior shrink on beta (diffuse hyper priors)
-                 b1 = 0.001, b2 = 0.001, ## parameters for hyper prior shrink on alpha_i
-                 c1 = 0.001, c2 = 0.001, ## parameters for hyper prior shrink on xi_t
-                 p1 = 0.001, p2 = 0.001
-                 ) ## parameters for hyper prior shrink on factor terms
+donor_states_list <- unique(dat$state)
+donor_states_list
 
 
-out1
-coefSummary(out1)
 
 
-eout1 <- effSummary(out1,   ## summary treatment effects
-                    usr.id = 39, ## treatment effect for individual treated units, if input NULL, calculate average TT
-                    cumu = FALSE,  ## whether to calculate culmulative treatment effects
-                    rela.period = TRUE) ## whether to use time relative to the occurence of treatment (1 is the first post-trea
-eout1
+
+placebo_aug_synth<-donor_states_list %>% map_dfr(placebo_test)
+
+
+
+pre_mspe <- placebo_aug_synth  %>%group_by(state) %>% filter(Time<=0) %>% summarise(premspe=sqrt(mean(Estimate^2)))
+post_mspe <- placebo_aug_synth %>% group_by(state) %>% filter(Time>0) %>% summarise(postmspe=sqrt(mean(Estimate^2)),average_diff=mean(Estimate)) %>%
+  arrange(desc(average_diff)) %>% mutate(average_rank=row_number())
+last_period <- placebo_aug_synth %>% group_by(state) %>% filter(Time==6) %>% summarise(last_period_diff=Estimate) %>% arrange(desc(last_period_diff)) %>%
+  mutate(last_period_rank=row_number())
+
+inference_tbl <- post_mspe %>%
+  left_join(pre_mspe, by = "state") %>%
+  left_join(last_period, by = "state") %>%
+  mutate(mspe_ratio = (postmspe / premspe)^2) %>%
+  arrange(desc(mspe_ratio)) %>%
+  mutate(mspe_rank=row_number())
+
+inference_tbl %>% filter(state=="OH")
+
+
+#Bayesian Estimates  Do Not Use
+# placebo.est
+# inference_tbl %>% mutate(mspe_squared=mspe_ratio^2) %>% filter(state=="OH")
+# out1 <- bpCausal(data = dat %>% as.data.frame(), ## simulated dataset  
+#                  index = c("fips", "week"), ## names for unit and time index
+#                  Yname = "people_fully_vaccinated_per_hundred", ## outcome variable
+#                  Dname = "post_ohio", ## treatment indicator  
+#                   Xname = c(),
+#                   Zname = c(),
+#                   Aname = c(),
+#                  re = "both",   # two-way random effect: choose from ("unit", "time", "none", "both") 
+#                  ar1 = TRUE,    # whether the time-level random effects is ar1 process or jsut multilevel (independent)
+#                  r = 10,        # factor numbers 
+#                  niter = 15000, # number of mcmc draws
+#                  burn = 5000,   # burn-in draws 
+#                  xlasso = 0,    ## whether to shrink constant coefs (1 = TRUE, 0 = FALSE)
+#                  zlasso = 0,    ## whether to shrink unit-level random coefs (1 = TRUE, 0 = FALSE)
+#                  alasso = 0,    ## whether to shrink time-level coefs (1 = TRUE, 0 = FALSE)
+#                  flasso = 0,    ## whether to shrink factor loadings (1 = TRUE, 0 = FALSE)
+#                  a1 = 0.001, a2 = 0.001, ## parameters for hyper prior shrink on beta (diffuse hyper priors)
+#                  b1 = 0.001, b2 = 0.001, ## parameters for hyper prior shrink on alpha_i
+#                  c1 = 0.001, c2 = 0.001, ## parameters for hyper prior shrink on xi_t
+#                  p1 = 0.001, p2 = 0.001
+#                  ) ## parameters for hyper prior shrink on factor terms
+# 
+# out1
+# coefSummary(out1)
+# 
+# 
+# eout1 <- effSummary(out1,   ## summary treatment effects
+#                     usr.id = 39, ## treatment effect for individual treated units, if input NULL, calculate average TT
+#                     cumu = FALSE,  ## whether to calculate culmulative treatment effects
+#                     rela.period = TRUE) ## whether to use time relative to the occurence of treatment (1 is the first post-treatment

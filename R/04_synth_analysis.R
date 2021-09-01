@@ -4,6 +4,18 @@ library(here)
 library(tidyverse)
 library(tidysynth)
 library(stargazer)
+library(augsynth)
+
+placebo_test <- function(s) {
+  # Takes in a state abbreviation  and runs an augsynth estimate with that state
+  
+  placebo.panel <- dat %>% mutate(placebo_post = if_else(state == s & centered_week >= 0, 1L, 0L))
+  placebo.est <- augsynth(people_fully_vaccinated_per_hundred ~ placebo_post,
+                          unit = state, time = centered_week,
+                          data = placebo.panel, progfun = "None", fixedeff = FALSE
+  )
+  cbind(summary(placebo.est)$att, state = s)
+}
 
 dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
 
@@ -143,7 +155,7 @@ ggsave(here("figures/pretreatment_synth.jpg"))
 
 dat<- dat %>% mutate(post_ohio=state=="OH" & centered_week>=0)
 # Augsynth Conformal Confidence Intervals
-summary(asynth)
+
 asynth<-augsynth::augsynth(
   people_fully_vaccinated_per_hundred~post_ohio,
   unit = state,
@@ -233,4 +245,26 @@ placebo_out %>% grab_unit_weights() %>% arrange(desc(weight))
 
 placebo_out %>% plot_mspe_ratio() 
 ggsave(here("figures/placebo_mspe.jpg"))
+
+
+
+
+placebo_aug_synth<-donor_states_list %>% map_dfr(placebo_test)
+
+
+
+pre_mspe <- placebo_aug_synth  %>%group_by(state) %>% filter(Time<=0) %>% summarise(premspe=sqrt(mean(Estimate^2)))
+post_mspe <- placebo_aug_synth %>% group_by(state) %>% filter(Time>0) %>% summarise(postmspe=sqrt(mean(Estimate^2)),average_diff=mean(Estimate)) %>%
+  arrange(desc(average_diff)) %>% mutate(average_rank=row_number())
+last_period <- placebo_aug_synth %>% group_by(state) %>% filter(Time==6) %>% summarise(last_period_diff=Estimate) %>% arrange(desc(last_period_diff)) %>%
+  mutate(last_period_rank=row_number())
+
+inference_tbl <- post_mspe %>%
+  left_join(pre_mspe, by = "state") %>%
+  left_join(last_period, by = "state") %>%
+  mutate(mspe_ratio = (postmspe / premspe)^2) %>%
+  arrange(desc(mspe_ratio)) %>%
+  mutate(mspe_rank=row_number())
+
+inference_tbl %>% filter(state=="OH")
 

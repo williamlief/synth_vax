@@ -132,9 +132,9 @@ registerDoParallel(20)
 proc.time()
 set.seed(12345)
 proc.time()
-trials<-200
+trials<-500
 power_results<-NULL
-sc <- c(-.2,0.1)
+sc <- c(-.2,0,0.1)
 
 i<-0
 for(i in sc){
@@ -217,8 +217,8 @@ power_results
 # Power Plot
  
 ```{r}
-power_results %>% write_csv(here("output/bayes_factor_6_23.csv"))
-power_results <- read_csv(here("output/bayes_factor_6_23.csv"))
+power_results %>% write_csv(here("output/bayes_factor_8_29.csv"))
+power_results <- read_csv(here("output/bayes_factor_8_29.csv"))
 
 #power_analysis(1)->p
 power_results %>%
@@ -241,10 +241,11 @@ power_results %>% filter(unit_name=="OH")  %>% group_by(scaling_factor) %>% summ
 
 
 ```{r}
-power_results %>% filter(.id=="OH") %>% group_by(scaling_factor) %>% summarise(mean(last_period_diff>-1.3))
+power_results %>% filter(.id=="OH") %>% group_by(scaling_factor) %>% summarise(mean(last_period_diff<0))
 
-(.7/.465)
+(.74/.565)
 
+0.744/.478
 .535/.3
 ```
 
