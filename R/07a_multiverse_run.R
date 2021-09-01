@@ -96,10 +96,12 @@ tidysynth_opts <- list(
 # augsynth
 augsynth_opts <- list(
   progfunc = list(
-    ridge = "ridge"
+    ridge = "ridge",
+    none  = "none"
   ),
   fixedeff = list(
-    true = TRUE
+    true = TRUE,
+    false = FALSE
   )
 )
 

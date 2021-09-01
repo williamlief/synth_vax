@@ -59,14 +59,14 @@ ggsave(here("figures/vax_byannounce_bystate.jpg"))
 # augsynth model ----------------------------------------------------------
 
 ppool_syn_full <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce, 
-                        state, week, n_leads = max(dat$centered_week, na.rm = T),
+                        state, week, n_leads=12,
                         dat)
 # nu is set to default, which is a heuristic balance between completely separate 
 # comparisons and a fully pooled model. In this case it comes out to 0.27. 
 print(ppool_syn_full$nu)
-(ppool_syn_full_summ <- summary(ppool_syn))
+(ppool_syn_full_summ <- summary(ppool_syn_full))
 
-plot(ppool_syn_summ) + 
+plot(ppool_syn_full,inf_type = "jackknife") + 
   labs(y = "Difference in Percent Fully Vaccinated", 
        title = "Multistate Augmented Synthetic Control (Fully Vaccinated)",
        subtitle = "Difference between Treated States and Synthetic Comparisons")
@@ -75,7 +75,7 @@ ggsave(here("figures/multisynth_full_vax.jpg"))
 
 
 ppool_syn_initial_dose <- multisynth(people_vaccinated_per_hundred ~ post_announce, 
-                        state, week, n_leads = max(dat$centered_week, na.rm = T),
+                        state, week, n_leads =12,
                         dat)
 # nu is set to default, which is a heuristic balance between completely separate 
 # comparisons and a fully pooled model. In this case it comes out to 0.27. 
@@ -92,7 +92,7 @@ ggsave(here("figures/multisynth_initial_dose.jpg"))
 
 
 ppool_syn_total_dose <- multisynth(total_vaccinations_per_hundred ~ post_announce, 
-                                     state, week, n_leads = max(dat$centered_week, na.rm = T),
+                                     state, week, n_leads =12,
                                      dat)
 # nu is set to default, which is a heuristic balance between completely separate 
 # comparisons and a fully pooled model. In this case it comes out to 0.27. 

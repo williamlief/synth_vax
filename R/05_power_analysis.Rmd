@@ -77,7 +77,7 @@ estimate_growth <- function(my_state,
   pmax(draw,0)
 }
 
-x <- estimate_growth_normal("CA")
+x <- estimate_growth_normal("OH")
 
 dat %>% group_by(state) %>%
   mutate(growth = people_fully_vaccinated_per_hundred - lag(people_fully_vaccinated_per_hundred)) %>%
@@ -132,7 +132,7 @@ registerDoParallel(20)
 proc.time()
 set.seed(12345)
 proc.time()
-trials<-200
+trials<-5
 power_results<-NULL
 sc <- seq(0,2,by=.25)
 
