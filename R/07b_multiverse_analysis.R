@@ -7,8 +7,8 @@ multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) 
   filter(
     (method=="Classical SCM" & as_progfunc=="none" & as_fixedeff=="FALSE") 
     |
-    (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE")
-      )
+      (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE")
+  )
 
 names(multiverse_spec)
 multiverse_stack <- multiverse_output %>% 
@@ -16,17 +16,17 @@ multiverse_stack <- multiverse_output %>%
   group_by(model_num) %>% 
   mutate(norm_weight = abs(weight) / sum(abs(weight), na.rm = T)) %>% 
   inner_join(multiverse_spec %>% 
-              mutate(
-                across(c(pretreat_start, post_stop), function(x) str_remove(unlist(x), "2021-")),
-                across(where(is.list), function(x) names(x))))#  %>%
+               mutate(
+                 across(c(pretreat_start, post_stop), function(x) str_remove(unlist(x), "2021-")),
+                 across(where(is.list), function(x) names(x))))#  %>%
 
-  #%>% 
-  # TODO: remove these specification from 07a then delete this code
-  # tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
-  #                   (method == "tidysynth" & 
-  #                      (ts_cov_use == "full_path" | 
-  #                         (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
-  # tidylog::filter(pretreat_start != "03-25")
+#%>% 
+# TODO: remove these specification from 07a then delete this code
+# tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
+#                   (method == "tidysynth" & 
+#                      (ts_cov_use == "full_path" | 
+#                         (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
+# tidylog::filter(pretreat_start != "03-25")
 
 model_fit <- multiverse_stack %>% 
   filter(unit_name != "OH") %>% 
@@ -69,7 +69,9 @@ pre_reg_model <- multiverse_spec %>%
          ts_cov_use == "NULL",
          pretreat_start == "2021-01-12",
          post_stop == "2021-06-24", 
-         outcome == "people_fully_vaccinated_per_hundred") %>% 
+         outcome == "people_fully_vaccinated_per_hundred",
+         covariates=="NULL",
+         str_detect(as.character(states_to_include),"CA",negate = TRUE)) %>% 
   filter(row_number() == 1) %>%  # this is a hack, having issues subsetting to correct states_to_include
   pull(model_num)
 
@@ -114,11 +116,11 @@ ggplot(data = multiverse_stack %>%
   labs(title = "Boxplot of State Weights in Synthetic Counterfactuals for Multiverse of Models", 
        x = NULL, y = "Weight normalized by sum of absolute model weights")
 
-ggsave("figures/multiverse_weights.png")
+ggsave("figures/multiverse_weights.png",,width = 20,height = 11)
 
 # Compare Estimates -------------------------------------------------------
 
- 
+
 ggplot(data  = dat %>% filter(avg_post_mspe < 50), 
        aes(long_time, last_period_diff, 
            color = covariates, alpha = avg_post_mspe)) +
@@ -144,7 +146,7 @@ ggplot(data  = dat %>% filter(avg_post_mspe < 50),
   scale_color_brewer(palette="Dark2") +
   scale_alpha(range = c(1, 0.1), guide = "none")
 
-ggsave("figures/multiverse_estimates.png")
+ggsave("figures/multiverse_estimates.png",width = 20,height = 11)
 
 
 # MSPE stats --------------------------------------------------------------
@@ -154,15 +156,23 @@ dat %>% filter(model_num == pre_reg_model) %>% pull(avg_post_mspe)
 
 
 dat %>% group_by(outcome) %>% 
+  filter(states_to_include!="All States + DC") %>%
   filter(avg_post_mspe == min(avg_post_mspe)) %>% 
   t()
-         
-
-multiverse_stack %>% arrange(pre_mspe) %>% mutate(pre_mspe_rank=row_number(), average_pre_mspe=mean(pre_mspe)) %>%
-  filter(unit_name=="OH")->OHIO
 
 
-OHIO %>% group_by(outcome) %>% summarise(mean(last_period_diff<0))
-OHIO %>% ggplot(aes(pre_mspe_rank)) +
-  geom_histogram() +
-  facet_wrap(vars(method,covariates,outcome))
+dat %>% group_by(outcome) %>% 
+  filter(states_to_include!="All States + DC") %>%
+  filter(avg_post_mspe == min(avg_post_mspe)) %>% 
+  t()         
+
+### Last Period Diff Stats
+dat %>% group_by(outcome) %>% 
+  summarise(mean(last_period_diff<0) ) %>%
+  t()         
+
+
+dat %>% group_by(outcome) %>% 
+  summarise(mean(last_period_diff<0) ) %>%
+  t()         
+
