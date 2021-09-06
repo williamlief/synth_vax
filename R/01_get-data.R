@@ -1,5 +1,7 @@
 # This script pulls raw data directly from online sources and saves to the 
 # data-raw/ directory. 
+# This file pulls vaccination rate and case data. 
+# Note: auxillary covariate data is obtained in the python/data_processing.py
 
 library(readr)
 library(here)

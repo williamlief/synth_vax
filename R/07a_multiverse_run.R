@@ -23,6 +23,8 @@ analysisdat <- vax_case %>%
 # NOTE: the mobility covs start on 1/1 while the vax data starts on 1/12 for 11 days that dont match
 # the mobility covs stop on 8/6 and the vax data stops on 8/17, also 11 days. 
 # So the mismatch counts are identical
+# ALSO NOTE: There are some positional references to variables in this script!
+# Be very careful when modifying the input data to ensure that nothing breaks
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
   mutate(state = str_trim(state))
@@ -57,7 +59,7 @@ data_params <- list(
   # Modelling Parameters
   covariates = list(
     none = "NULL",
-    annual_demo = names(annual_cov[c(3, 5:6, 8:20)]),
+    annual_demo = names(annual_cov[c(3, 5:6, 8:20)]), # POSITIONAL REFERENCES
     annual_mobility = c(names(annual_cov[c(3, 5:6, 8:20)]), names(daily_cov)[4:9])
   ),
   

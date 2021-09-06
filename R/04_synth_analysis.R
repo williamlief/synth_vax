@@ -1,21 +1,11 @@
-# This script runs the synth model 
+# This script runs the synth model with all states
+# This analysis is reported in Appendic C: Fifty State Specification
 
 library(here)
 library(tidyverse)
 library(tidysynth)
 library(stargazer)
 library(augsynth)
-
-placebo_test <- function(s) {
-  # Takes in a state abbreviation  and runs an augsynth estimate with that state
-  
-  placebo.panel <- dat %>% mutate(placebo_post = if_else(state == s & centered_week >= 0, 1L, 0L))
-  placebo.est <- augsynth(people_fully_vaccinated_per_hundred ~ placebo_post,
-                          unit = state, time = centered_week,
-                          data = placebo.panel, progfun = "None", fixedeff = FALSE
-  )
-  cbind(summary(placebo.est)$att, state = s)
-}
 
 dat <- readRDS(here("data/weekly_data_2021-06-24.rds")) 
 
@@ -152,30 +142,41 @@ ggsave(here("figures/pretreatment_synth.jpg"))
 
 
 
+# Permutation Test and Conformal Inference --------------------------------
+# This section was added per suggestions from reviewer 2
+# It adds conformal inference based standard errors to the synthetic control analysis 
+# We use the augsynth package to do so
 
-dat<- dat %>% mutate(post_ohio=state=="OH" & centered_week>=0)
+dat <- dat %>% mutate(post_ohio = state == "OH" & centered_week >= 0)
 # Augsynth Conformal Confidence Intervals
 
-asynth<-augsynth::augsynth(
-  people_fully_vaccinated_per_hundred~post_ohio,
+asynth <- augsynth::augsynth(
+  people_fully_vaccinated_per_hundred ~ post_ohio,
   unit = state,
   time = centered_week,
   data = dat,
-  progfunc="none",fixedeff=FALSE)
-state_names<-rownames(asynth$weights)
-augsynth_weights<-asynth$weights %>% as_tibble() %>% bind_cols(state_names) %>% select(state=...2,a_weight=V1)
+  progfunc = "none", fixedeff = FALSE)
 
+# Confirm that unit weights from augsynth match tidysynth unit weights
+state_names <- rownames(asynth$weights)
 
-weight_differences<-vaccine_out %>%
+augsynth_weights <- asynth$weights %>% 
+  as_tibble() %>% 
+  bind_cols(state_names) %>% 
+  select(state=...2, a_weight=V1)
+
+weight_differences <- vaccine_out %>%
   grab_unit_weights() %>%
   left_join(augsynth_weights, by = c("unit" = "state")) %>%
   mutate(diff = weight - a_weight) 
 
 weight_differences %>% summarise(sum(abs(diff))) # Check that differenace
 
-weight_differences %>% arrange(desc(diff))
+weight_differences %>% arrange(desc(diff)) # differences are all less than 0.00011
 
 summary(asynth,alpha=.05)
+
+# Standard Error Plot
 plot(asynth) +
   labs(
     title="Percent Difference in Fully Vaccinated Rates",
@@ -185,9 +186,59 @@ plot(asynth) +
 ggsave(here("figures/conformal_inference_asynth_including_lotto.jpg"))
 
 
+# Permutation Tests with augsynth -----------------------------------------
+# Here we test that augsynth returns the same results from permutation based 
+# inference as the tidysynth package.
+
+donor_states_list <- unique(dat$state)
+
+permutation_test <- function(s) {
+  # Takes in a state abbreviation  and runs an augsynth estimate with that state
+  
+  permute.panel <- dat %>% mutate(permute_post = if_else(state == s & centered_week >= 0, 1L, 0L))
+  permute.est <- augsynth(people_fully_vaccinated_per_hundred ~ permute_post,
+                          unit = state, time = centered_week,
+                          data = permute.panel, progfun = "None", fixedeff = FALSE
+  )
+  cbind(summary(permute.est)$att, state = s)
+}
+
+permute_aug_synth <- donor_states_list %>% map_dfr(permutation_test)
+
+pre_mspe <- permute_aug_synth %>% 
+  group_by(state) %>% 
+  filter(Time<=0) %>% 
+  summarise(premspe=sqrt(mean(Estimate^2)))
+
+post_mspe <- permute_aug_synth %>% 
+  group_by(state) %>% 
+  filter(Time>0) %>% 
+  summarise(postmspe=sqrt(mean(Estimate^2)), 
+            average_diff=mean(Estimate)) %>%
+  arrange(desc(average_diff)) %>% 
+  mutate(average_rank=row_number())
+
+last_period <- permute_aug_synth %>% 
+  group_by(state) %>% filter(Time==6) %>% 
+  summarise(last_period_diff=Estimate) %>% 
+  arrange(desc(last_period_diff)) %>%
+  mutate(last_period_rank=row_number())
+
+inference_tbl <- post_mspe %>%
+  left_join(pre_mspe, by = "state") %>%
+  left_join(last_period, by = "state") %>%
+  mutate(mspe_ratio = (postmspe / premspe)^2) %>%
+  arrange(desc(mspe_ratio)) %>%
+  mutate(mspe_rank=row_number())
+
+inference_tbl %>% filter(state=="OH")
+
 
 # Placebo Test ------------------------------------------------------------
 # This test shifts the pre-treatment window back five weeks.
+# This analysis was included in our pre-registration as a demonstration of the 
+# method and to show that we did not find treatment effects before the lottery 
+# was announced. 
 
 placebo_out <-
   dat %>% 
@@ -249,22 +300,4 @@ ggsave(here("figures/placebo_mspe.jpg"))
 
 
 
-placebo_aug_synth<-donor_states_list %>% map_dfr(placebo_test)
-
-
-
-pre_mspe <- placebo_aug_synth  %>%group_by(state) %>% filter(Time<=0) %>% summarise(premspe=sqrt(mean(Estimate^2)))
-post_mspe <- placebo_aug_synth %>% group_by(state) %>% filter(Time>0) %>% summarise(postmspe=sqrt(mean(Estimate^2)),average_diff=mean(Estimate)) %>%
-  arrange(desc(average_diff)) %>% mutate(average_rank=row_number())
-last_period <- placebo_aug_synth %>% group_by(state) %>% filter(Time==6) %>% summarise(last_period_diff=Estimate) %>% arrange(desc(last_period_diff)) %>%
-  mutate(last_period_rank=row_number())
-
-inference_tbl <- post_mspe %>%
-  left_join(pre_mspe, by = "state") %>%
-  left_join(last_period, by = "state") %>%
-  mutate(mspe_ratio = (postmspe / premspe)^2) %>%
-  arrange(desc(mspe_ratio)) %>%
-  mutate(mspe_rank=row_number())
-
-inference_tbl %>% filter(state=="OH")
 

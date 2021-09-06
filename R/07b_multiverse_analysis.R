@@ -2,15 +2,16 @@ library(tidyverse)
 library(here)
 
 multiverse_output <- readRDS(here::here("output-multiverse/multiverse_output.RDS"))
-multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
-  mutate(method=if_else(as_progfunc=="none"&as_fixedeff=="FALSE","Classical SCM",method)) %>%
-  filter(
-    (method=="Classical SCM" & as_progfunc=="none" & as_fixedeff=="FALSE") 
-    |
-      (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE")
-  )
 
-names(multiverse_spec)
+# Here we analyze only output from the augsynth package. The 216 model permutations 
+# match is reported in Table 4. We omit from the analysis here identical and near
+# identical model estimates calculated with the tidysynth package. 
+multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
+  mutate(method = 
+           if_else(as_progfunc == "none" & as_fixedeff == "FALSE", "Classical SCM", method)) %>%
+  filter(method=="Classical SCM" |
+           (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE"))
+
 multiverse_stack <- multiverse_output %>% 
   bind_rows(.id = "model_num") %>% 
   group_by(model_num) %>% 
@@ -18,15 +19,8 @@ multiverse_stack <- multiverse_output %>%
   inner_join(multiverse_spec %>% 
                mutate(
                  across(c(pretreat_start, post_stop), function(x) str_remove(unlist(x), "2021-")),
-                 across(where(is.list), function(x) names(x))))#  %>%
+                 across(where(is.list), function(x) names(x))))
 
-#%>% 
-# TODO: remove these specification from 07a then delete this code
-# tidylog::filter((as_progfunc == "ridge" & as_fixedeff == "true") | 
-#                   (method == "tidysynth" & 
-#                      (ts_cov_use == "full_path" | 
-#                         (ts_cov_use == "use_covs" & covariates != "none")))) %>% 
-# tidylog::filter(pretreat_start != "03-25")
 
 model_fit <- multiverse_stack %>% 
   filter(unit_name != "OH") %>% 
@@ -63,6 +57,8 @@ states.labs <- c("All States + DC", "Non Lottery Adopting States")
 names(states.labs) <- c("full", "no_lottery")
 
 # check pre-registered model ----------------------------------------------
+# Here we check the pre-registered 50 state model to confirm that the multiverse
+# code is running as intended
 
 pre_reg_model <- multiverse_spec %>% 
   filter(method == 'Classical SCM', 
@@ -71,8 +67,7 @@ pre_reg_model <- multiverse_spec %>%
          post_stop == "2021-06-24", 
          outcome == "people_fully_vaccinated_per_hundred",
          covariates=="NULL",
-         str_detect(as.character(states_to_include),"CA",negate = TRUE)) %>% 
-  filter(row_number() == 1) %>%  # this is a hack, having issues subsetting to correct states_to_include
+         str_detect(as.character(states_to_include),"CA")) %>% 
   pull(model_num)
 
 pre_reg <- dat %>% filter(model_num == pre_reg_model)
@@ -116,7 +111,7 @@ ggplot(data = multiverse_stack %>%
   labs(title = "Boxplot of State Weights in Synthetic Counterfactuals for Multiverse of Models", 
        x = NULL, y = "Weight normalized by sum of absolute model weights")
 
-ggsave("figures/multiverse_weights.png",,width = 20,height = 11)
+ggsave("figures/multiverse_weights.png", width = 20, height = 11)
 
 # Compare Estimates -------------------------------------------------------
 
