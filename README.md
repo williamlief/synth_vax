@@ -2,10 +2,10 @@
 
 # Did Ohio’s Vaccine Lottery Increase Vaccination Rates? A Pre-Registered, Synthetic Control Study
 
-## Versions
+## Publications
 
-* A preprint of our findings is available at https://osf.io/a6de5/. 
-* Our pre-registered analysis plan is available at https://osf.io/g6xns/
+* [Working Paper](https://osf.io/a6de5/) (July 5th, 2021) 
+* [Pre-registered analysis plan](https://osf.io/g6xns/) (May 24, 2021)
 
 ## Directory Info
 
