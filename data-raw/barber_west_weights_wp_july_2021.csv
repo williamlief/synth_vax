@@ -1,0 +1,35 @@
+﻿State,Vaccinations,Cases,ICU_days
+Alabama,-0.064,0,0
+Alaska,-0.021,0,0
+Arizona,0.008,0,0
+Connecticut,-0.058,0,0
+District of Columbia,0.009,0,0
+Florida,-0.067,0,0
+Georgia,0.105,0,0
+Hawaii,-0.046,0,0
+Idaho,0.181,0,0
+Indiana,0.002,0.139,0.435
+Iowa,-0.066,0,0
+Kansas,0.28,0.302,0.065
+Maine,0.002,0,0
+Michigan,0.193,0.032,0.075
+Minnesota,0.014,0,0
+Mississippi,0.038,0,0
+Missouri,-0.038,0,0.2
+Montana,-0.117,0,0
+Nebraska,0.114,0,0
+New Hampshire,-0.044,0,0
+New Jersey,0.079,0,0.056
+North Dakota,0.127,0,0
+Oklahoma,-0.007,0,0
+Pennsylvania,-0.056,0,0
+Rhode Island,0.024,0.109,0.169
+South Carolina,0.043,0,0
+South Dakota,-0.026,0,0
+Tennessee,0.05,0,0
+Texas,-0.055,0,0
+Utah,0.089,0.141,0
+Vermont,0.025,0,0
+Virginia,0.031,0,0
+Wisconsin,0.322,0.277,0
+Wyoming,-0.068,0,0
