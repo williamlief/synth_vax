@@ -66,9 +66,12 @@ pre_reg_model <- multiverse_spec %>%
          post_stop == "2021-06-24", 
          outcome == "people_fully_vaccinated_per_hundred",
          covariates=="NULL",
-         str_detect(as.character(states_to_include),"CA"),negate=TRUE) %>% 
-  pull(model_num)
+         #str_detect(as.character(states_to_include),"CA"),negate=TRUE,
+         map_dbl(states_to_include,length)==33,
+         )  %>% pull(model_num)
+  
 
+pre_reg_model
 pre_reg <- dat %>% filter(model_num == "163")
 
 # this is very close on all measures to the pre-registration.
@@ -117,7 +120,9 @@ ggsave("figures/multiverse_weights.png", width = 20, height = 11)
 
 ggplot(data  = dat %>% filter(avg_post_mspe < 50), 
        aes(long_time, last_period_diff, 
-           color = covariates, alpha = avg_post_mspe)) +
+           color = covariates
+           #alpha = avg_post_mspe
+           )) +
   geom_point() +
   # highlight prereg model
   geom_point(data = dat %>% filter(model_num == pre_reg_model), 
@@ -132,7 +137,7 @@ ggplot(data  = dat %>% filter(avg_post_mspe < 50),
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90)) +
   labs(title = "Multiverse Estimates for Final Difference in Outcomes between Ohio and Synthetic Comparison",
-       subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
+      # subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
        x = NULL,
        y = "Estimated Difference in Outcome in Final Time Period",
        color = "Covariate Adjustment",
@@ -166,6 +171,6 @@ dat %>% group_by(outcome) %>%
 
 
 dat %>% group_by(outcome) %>% 
-  summarise(mean(last_period_diff<0) ) %>%
+  summarise(sum(last_period_diff<0) ) %>%
   t()         
 
