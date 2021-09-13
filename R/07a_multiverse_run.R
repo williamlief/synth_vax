@@ -11,7 +11,7 @@ library(tidysynth)
 
 annual_cov <- read_csv(here("python/annual_dataset_processed.csv"))
 daily_cov <- read_csv(here("python/daily_dataset_processed.csv"))
-vax_case <- readRDS(here("data/daily_data_2021-08-18.rds"))
+vax_case <- readRDS(here("data/daily_data_2021-09-12.rds"))
 
 analysisdat <- vax_case %>%
   select(state, fips, day, date, people_fully_vaccinated_per_hundred, 
@@ -53,7 +53,7 @@ data_params <- list(
   post_stop = list(
     lottery_end = "2021-06-24", # lottery end
     lottery_4w = "2021-07-23", # 4 weeks after lottery end per Moderna regimen
-    lottery_6w = "2021-08-06" # 4+2 week buffer
+    lottery_6w = "2021-08-22" # 4+2 week buffer
   ),
   
   # Modelling Parameters
