@@ -4,10 +4,13 @@ library(here)
 multiverse_output <- readRDS(here::here("output-multiverse/multiverse_output.RDS"))
 
 multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
+unnest(method,as_progfunc,pretreat_start) %>%
   mutate(method = if_else(as_progfunc == "none" & as_fixedeff == "FALSE", 
                           "Classical SCM", 
-                          method)) 
+                          method))
 
+
+multiverse_spec %>% count(method)
 multiverse_stack <- multiverse_output %>% 
   bind_rows(.id = "model_num") %>% 
   group_by(model_num) %>% 
@@ -58,15 +61,15 @@ names(states.labs) <- c("full", "no_lottery")
 
 pre_reg_model <- multiverse_spec %>% 
   filter(method == 'Classical SCM', 
-         ts_cov_use == "NULL",
+         
          pretreat_start == "2021-01-12",
          post_stop == "2021-06-24", 
          outcome == "people_fully_vaccinated_per_hundred",
          covariates=="NULL",
-         str_detect(as.character(states_to_include),"CA")) %>% 
+         str_detect(as.character(states_to_include),"CA"),negate=TRUE) %>% 
   pull(model_num)
 
-pre_reg <- dat %>% filter(model_num == pre_reg_model)
+pre_reg <- dat %>% filter(model_num == "163")
 
 # this is very close on all measures to the pre-registration.
 # Output values are within a few hundreths 
@@ -153,7 +156,6 @@ dat %>% group_by(outcome) %>%
 
 
 dat %>% group_by(outcome) %>% 
-  filter(states_to_include!="All States + DC") %>%
   filter(avg_post_mspe == min(avg_post_mspe)) %>% 
   t()         
 
