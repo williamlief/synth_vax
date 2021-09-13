@@ -25,7 +25,8 @@ bw_synth <- dat %>%
                   by = c("location" = "State")) %>% 
   mutate(synth = weight * people_vaccinated_per_hundred) %>% 
   group_by(centered_week) %>% 
-  summarize(bw_synth = sum(synth, na.rm = T))
+  summarize(bw_synth = sum(synth, na.rm = T),
+            bw_n = sum(weight, na.rm = T)) # bw_n lets us confirm that we dont have any missing data problems
 
 s_synth <- dat %>% 
   tidylog::left_join(sehgal_weights %>% 
@@ -33,7 +34,8 @@ s_synth <- dat %>%
                      by = c("location" = "State")) %>% 
   mutate(synth = weight * people_vaccinated_per_hundred) %>% 
   group_by(centered_week) %>% 
-  summarize(s_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T))
+  summarize(s_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T),
+            s_n = sum(weight, na.rm = T))
 
 this_synth <- dat %>% 
   tidylog::left_join(this_weights %>% 
@@ -41,7 +43,8 @@ this_synth <- dat %>%
                      by = c("state" = "unit")) %>% 
   mutate(synth = weight * people_vaccinated_per_hundred) %>% 
   group_by(centered_week) %>% 
-  summarize(t_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T))
+  summarize(t_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T),
+            t_n = sum(weight, na.rm = T))
 
 oh <- dat %>% 
   filter(state == "OH") 
@@ -74,3 +77,8 @@ ggplot(compare,
        subtitle = "Observed Ohio First Dose Vaccination Rate Minus Synthetic Counterfactual")
 
 ggsave(here("figures/first_dose_compare.jpg"), bg = "white")
+
+
+
+
+
