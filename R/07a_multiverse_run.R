@@ -7,7 +7,6 @@ library(tidyverse)
 library(furrr)
 library(augsynth)
 library(lubridate)
-library(tidysynth)
 
 annual_cov <- read_csv(here("python/annual_dataset_processed.csv"))
 daily_cov <- read_csv(here("python/daily_dataset_processed.csv"))
@@ -20,10 +19,7 @@ analysisdat <- vax_case %>%
                      by = "fips") %>% 
   tidylog::left_join(daily_cov %>% select(-state_abb), 
                      by = c("fips", "date")) 
-# NOTE: the mobility covs start on 1/1 while the vax data starts on 1/12 for 11 days that dont match
-# the mobility covs stop on 8/6 and the vax data stops on 8/17, also 11 days. 
-# So the mismatch counts are identical
-# ALSO NOTE: There are some positional references to variables in this script!
+# NOTE: There are some positional references to variables in this script!
 # Be very careful when modifying the input data to ensure that nothing breaks
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
@@ -53,7 +49,7 @@ data_params <- list(
   post_stop = list(
     lottery_end = "2021-06-24", # lottery end
     lottery_4w = "2021-07-23", # 4 weeks after lottery end per Moderna regimen
-    lottery_6w = "2021-08-22" # 4+2 week buffer
+    lottery_6w = "2021-08-22" # Last day before Full FDA approval
   ),
   
   # Modelling Parameters
@@ -82,17 +78,7 @@ data_spec <-
 # Modelling parameters ----------------------------------------------------
 
 method = list( 
-  tidysynth = "tidysynth", 
   augsynth = "augsynth"
-)
-
-# method specific opts, this is inelegant and handcoded with if/else
-# tidysynth
-tidysynth_opts <- list(
-  cov_use = list(
-    full_path = "full_path", 
-    use_covs = "use_covs"
-  )
 )
 
 # augsynth
@@ -107,18 +93,16 @@ augsynth_opts <- list(
   )
 )
 
-model_spec = bind_rows(
-  crossing(method = method$tidysynth, 
-           ts_cov_use = tidysynth_opts$cov_use),
-  crossing(method = method$augsynth, 
+model_spec <-
+  crossing(method = method, 
            as_progfunc = augsynth_opts$progfunc, 
-           as_fixedeff = augsynth_opts$fixedeff))
+           as_fixedeff = augsynth_opts$fixedeff) %>% 
+  # No progfunc and no fixedeff is the same as tidysynth
+  filter((as_progfunc == "none" & as_fixedeff == FALSE) |
+           as_progfunc == "ridge" & as_fixedeff == TRUE) 
 
 multiverse_spec <- 
   crossing(model_spec, data_spec) %>% 
-  # exclusions
-  tidylog::filter(!(ts_cov_use == "full_path" & covariates != "NULL")) %>% # no covariates with full_path
-  tidylog::filter(!(ts_cov_use == "use_covs" & covariates == "NULL")) %>% # no covariates with NULL covariates - this is bad
   mutate(model_num = as.character(row_number())) %>% 
   as.data.frame() 
 
@@ -126,7 +110,6 @@ multiverse_spec <-
 
 multiverse_run <- function(model_num, 
                            method, 
-                           ts_cov_use, 
                            as_progfunc, 
                            as_fixedeff,
                            states_to_include,
@@ -141,7 +124,7 @@ multiverse_run <- function(model_num,
   if(verbose) {
     print(paste("model_num:", model_num))
     print(paste("method:", method))
-    print(paste("method_opts:", ts_cov_use, as_progfunc, as_fixedeff))
+    print(paste("method_opts:", as_progfunc, as_fixedeff))
     print(paste("states_to_include, count:", length(states_to_include)))
     print(paste("pretreat_start:", pretreat_start))
     print(paste("post_stop:", post_stop))
@@ -170,118 +153,6 @@ multiverse_run <- function(model_num,
            treat = state == "OH" & centered_week >= 0)
   
   data$outcome = data[[outcome]]
-  
-  if(method == "tidysynth") {
-    
-    setup_synth <- data  %>%
-      # initial the synthetic control object
-      synthetic_control(outcome = outcome, # outcome
-                        unit = state, # unit index in the panel data
-                        time = centered_week, # time index in the panel data
-                        i_unit = "OH", # unit where the intervention occurred
-                        i_time = 0, # time period when the intervention occurred
-                        generate_placebos = T # generate placebo synthetic controls (for inference)
-      ) 
-    
-    pre_window <- min(data$centered_week)
-    
-    if(ts_cov_use == "full_path") {
-      if (!pre_window %in% c(-17, -12, -7)) {
-        stop("full path is hardcoded to specific windows. Specified time window not in hard coded options of -17, -12, -5")
-      }
-      if(pre_window == -17) {
-        setup_synth <- setup_synth %>% 
-          generate_predictor(time_window = -17, lagged_outcome17 = outcome) %>%
-          generate_predictor(time_window = -16, lagged_outcome16 = outcome) %>%
-          generate_predictor(time_window = -15, lagged_outcome15 = outcome) %>%
-          generate_predictor(time_window = -14, lagged_outcome14 = outcome) %>%
-          generate_predictor(time_window = -13, lagged_outcome13 = outcome)
-      } 
-      if (pre_window %in% c(-17, -12)) {
-        setup_synth <- setup_synth %>% 
-          generate_predictor(time_window = -12, lagged_outcome12 = outcome) %>%
-          generate_predictor(time_window = -11, lagged_outcome11 = outcome) %>%
-          generate_predictor(time_window = -10, lagged_outcome10 = outcome) %>%
-          generate_predictor(time_window = -09, lagged_outcome09 = outcome) %>%
-          generate_predictor(time_window = -08, lagged_outcome08 = outcome)       
-      }
-      if (pre_window %in% c(-17, -12, -7)) {
-        setup_synth <- setup_synth %>% 
-          generate_predictor(time_window = -07, lagged_outcome07 = outcome) %>%
-          generate_predictor(time_window = -06, lagged_outcome06 = outcome) %>%
-          generate_predictor(time_window = -05, lagged_outcome05 = outcome) %>%
-          generate_predictor(time_window = -04, lagged_outcome04 = outcome) %>%
-          generate_predictor(time_window = -03, lagged_outcome03 = outcome) %>%
-          generate_predictor(time_window = -02, lagged_outcome02 = outcome) %>%
-          generate_predictor(time_window = -01, lagged_outcome01 = outcome)
-      }
-    }
-    
-    if(ts_cov_use == "use_covs") {
-      
-      # with covariates, use the five weeks lagged outcome to match on
-      setup_synth <- setup_synth %>% 
-        generate_predictor(time_window = -05, lagged_outcome05 = outcome) %>%
-        generate_predictor(time_window = -04, lagged_outcome04 = outcome) %>%
-        generate_predictor(time_window = -03, lagged_outcome03 = outcome) %>%
-        generate_predictor(time_window = -02, lagged_outcome02 = outcome) %>%
-        generate_predictor(time_window = -01, lagged_outcome01 = outcome)
-      
-      
-      if(covariates[[1]] != "NULL") {
-        setup_synth <- setup_synth %>% 
-          generate_predictor(time_window = pre_window:-1,
-                             across(all_of(covariates), mean, na.rm = T))
-      }
-    }
-    
-    synth_out <- setup_synth %>% 
-      generate_weights(optimization_window = pre_window:-1, # time to use in the optimization task
-                       margin_ipop = .02,sigf_ipop = 7,bound_ipop = 6 # optimizer options
-      ) %>%
-      # Generate the synthetic control
-      generate_control()
-    
-    # Extract relevent output
-    # weights, average: att, mspe, pval, last_period: att, mspe, pval.
-    weights <- synth_out %>%
-      grab_unit_weights()
-    
-    mspe <- synth_out %>% 
-      grab_signficance() %>% 
-      rename(mspe_rank=rank) 
-    
-    average_diff <- synth_out %>%
-      unnest(.synthetic_control) %>%
-      filter(time_unit >= 1) %>%
-      group_by(.id) %>%
-      summarise(average_difference = mean(real_y - synth_y)) %>%
-      arrange(desc(average_difference)) %>%
-      mutate(average_rank=row_number()) 
-    
-    last_period_diff <- synth_out %>%
-      unnest(.synthetic_control) %>%
-      filter(time_unit == max(time_unit)) %>%
-      group_by(.id) %>%
-      summarise(last_period_diff = (real_y - synth_y),
-                .groups = "drop") %>%
-      distinct() %>%
-      ungroup() %>%
-      arrange(desc(last_period_diff)) %>% 
-      mutate(last_period_rank=row_number())
-    
-    state_performance_metrics <- 
-      mspe %>% 
-      left_join(average_diff,by=c("unit_name"=".id")) %>% 
-      left_join(last_period_diff,by=c("unit_name"=".id")) %>% 
-      left_join(weights, by = c("unit_name" = "unit")) %>% 
-      mutate(model_num = model_num)
-    
-    # write the full synth output to disk
-    saveRDS(synth_out, paste0(output, "/model_", model_num, ".rds"))
-    # function returns selected metrics in memory
-    return(state_performance_metrics)
-  }
   
   if(method == "augsynth") {
     # Covariate inclusion 

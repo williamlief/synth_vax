@@ -21,7 +21,7 @@ df_vars.append({'pop_density':pop_density})
 ### RACE AND ETHNICITY DATA FROM 2019 ACS SURVEY
 ## Warning: data must be downloaded by user, see readme for instructions
 
-df = pd.read_csv(os.path.join('raw_data','ACSDP1Y2019.DP05_data_with_overlays_2021-08-06T104400.csv'))
+df = pd.read_csv(os.path.join('python/raw_data','ACSDP1Y2019.DP05_data_with_overlays_2021-08-06T104400.csv'))
 #delete column labels/metadata from dataset
 df.drop([0], inplace=True)
 #create list of states to use in dict with relevant data
@@ -120,7 +120,7 @@ for i in range(len(files)):
 ### 2020 REPUBLICAN VOTE SHARE BY STATE FROM MIT ELECTION DATA + SCIENCE LAB
 ## Warning: data must be downloaded by user, see readme for instructions
 
-df = pd.read_csv(os.path.join('raw_data','1976-2020-president.csv'))
+df = pd.read_csv(os.path.join('python/raw_data','1976-2020-president.csv'))
 #select only votes for Trump in 2020 election
 df2 = df.loc[(df['year'] == 2020) & (df['party_detailed'] == 'REPUBLICAN')]
 df2.reset_index(drop=True,inplace = True)
@@ -140,7 +140,7 @@ df_vars.append({'repub_vote_share_2020':rep_vote})
 ### INFLUENZA VACCINATION RATES IN 2019 (PRE-PANDEMIC) FROM CENTERS FOR MEDICARE AND MEDICAID SERVICES (CMS)
 ## Warning: data must be downloaded by user, see readme for instructions
 
-df = pd.read_csv(os.path.join('raw_data','mmd_data.csv'))
+df = pd.read_csv(os.path.join('python/raw_data','mmd_data.csv'))
 # only keep data from US states, drop territories
 df2 = df.iloc[:51]
 #create dict of {state : flu vax rate 2019}
@@ -157,7 +157,7 @@ df_vars.append({'flu_vaccination_rate_2019':vax_rate})
 
 ### CREATE DATAFRAME FOR ANNUAL DATA, CHANGE STATE NAMES TO FIPS CODES, SAVE OUTPUT
 ## TODO: SET THIS TO WORK WITHIN GITHUB DIR
-fips = pd.read_csv(os.path.join('..','data-raw','fips.csv'))
+fips = pd.read_csv(os.path.join('data-raw','fips.csv'))
 fips['state'] = fips['state'].str.lower()
 fips = fips.set_index('state')
 fips.rename(columns={'abb':'state_abb'},inplace=True)
@@ -168,11 +168,11 @@ for i in range(len(df_vars)):
     final_df = final_df.join(sub_df)
 final_df.set_index('fips', inplace=True)
 
-final_df.to_csv('annual_dataset_processed.csv')
+final_df.to_csv('python/annual_dataset_processed.csv')
 
 ### CLEAN DATA AND CREATE DATAFRAME OF DAILY MOBILITY DATA
 ## Warning: data must be downloaded by user, see readme for instructions
-daily_df = pd.read_csv(os.path.join('raw_data','2021_US_Region_Mobility_Report.csv'))
+daily_df = pd.read_csv(os.path.join('python/raw_data','2021_US_Region_Mobility_Report.csv'))
 #select only state-level data, drop county/region level data
 daily_df = daily_df.loc[(daily_df['sub_region_1'].notnull()) & (daily_df['sub_region_2'].isna())]
 #remove unneeded columns
@@ -186,5 +186,5 @@ daily_df.set_index('fips',inplace=True)
 state_abbs = daily_df.pop('state_abb')
 daily_df.insert(0,'state_abb',state_abbs)
 #export data to csv
-daily_df.to_csv('daily_dataset_processed.csv')
+daily_df.to_csv('python/daily_dataset_processed.csv')
 

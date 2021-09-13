@@ -3,14 +3,10 @@ library(here)
 
 multiverse_output <- readRDS(here::here("output-multiverse/multiverse_output.RDS"))
 
-# Here we analyze only output from the augsynth package. The 216 model permutations 
-# match is reported in Table 4. We omit from the analysis here identical and near
-# identical model estimates calculated with the tidysynth package. 
 multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
-  mutate(method = 
-           if_else(as_progfunc == "none" & as_fixedeff == "FALSE", "Classical SCM", method)) %>%
-  filter(method=="Classical SCM" |
-           (method=="augsynth" & as_progfunc=="ridge" & as_fixedeff=="TRUE"))
+  mutate(method = if_else(as_progfunc == "none" & as_fixedeff == "FALSE", 
+                          "Classical SCM", 
+                          method)) 
 
 multiverse_stack <- multiverse_output %>% 
   bind_rows(.id = "model_num") %>% 
