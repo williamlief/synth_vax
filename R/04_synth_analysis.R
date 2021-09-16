@@ -97,48 +97,6 @@ vaccine_out %>% plot_differences() +
 ggsave("figures/treatment_differences.jpg")
 
 
-# Main result values
-mspe <- vaccine_out %>% 
-  grab_signficance() %>% 
-  rename(mspe_rank=rank) 
-
-average_diff <- vaccine_out %>%
-  unnest(.synthetic_control) %>%
-  filter(time_unit >= 1) %>%
-  group_by(.id) %>%
-  summarise(average_difference = mean(real_y - synth_y)) %>%
-  arrange(desc(average_difference)) %>%
-  mutate(average_rank=row_number()) 
-
-last_period_diff <- vaccine_out %>%
-  unnest(.synthetic_control) %>%
-  filter(time_unit == max(time_unit)) %>%
-  group_by(.id) %>%
-  summarise(last_period_diff = (real_y - synth_y)) %>%
-  distinct() %>%
-  ungroup() %>%
-  arrange(desc(last_period_diff)) %>% 
-  mutate(last_period_rank=row_number())
-
-state_performance_metrics <- 
-  mspe %>% 
-  left_join(average_diff,by=c("unit_name"=".id")) %>% 
-  left_join(last_period_diff,by=c("unit_name"=".id"))
-
-state_performance_metrics %>% filter(unit_name=="OH")
-# NOTE: latex table created by hand
-
-# Permutation Test Plot
-vaccine_out %>% plot_placebos() +
-  scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
-  labs(
-    title = "Ohio and Synthetic Ohio",
-    caption = "Timing of The Lottery Announcement",
-    x="Weeks Relative to Lottery Announcement",
-    y="Percent Fully Vaccinated"
-  ) 
-# NOTE: not included in paper writeup
-ggsave(here("figures/pretreatment_synth.jpg")) 
 
 
 

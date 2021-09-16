@@ -4,8 +4,9 @@
 library(here)
 library(tidyverse)
 library(tidysynth)
-
-dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) 
+library(lubridate)
+dat <- readRDS(here("data/weekly_data_2021-09-12.rds")) %>% 
+  filter(last_day <= make_date(2021, 08, 22))
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
   mutate(state = str_trim(state))

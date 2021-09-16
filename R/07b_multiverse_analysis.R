@@ -72,7 +72,7 @@ pre_reg_model <- multiverse_spec %>%
   
 
 pre_reg_model
-pre_reg <- dat %>% filter(model_num == "163")
+pre_reg <- dat %>% filter(model_num == pre_reg_model)
 
 # this is very close on all measures to the pre-registration.
 # Output values are within a few hundreths 
@@ -108,7 +108,7 @@ ggplot(data = multiverse_stack %>%
                                  states_to_include = states.labs)) +
   geom_boxplot() + 
   coord_flip() +
-  theme_minimal() +
+  theme_bw() +
   theme(axis.text.y = element_text(size = 6)) +
   labs(title = "Boxplot of State Weights in Synthetic Counterfactuals for Multiverse of Models", 
        x = NULL, y = "Weight normalized by sum of absolute model weights")
@@ -123,18 +123,18 @@ ggplot(data  = dat %>% filter(avg_post_mspe < 50),
            color = covariates
            #alpha = avg_post_mspe
            )) +
-  geom_point() +
+  geom_point(size=2.5) +
   # highlight prereg model
   geom_point(data = dat %>% filter(model_num == pre_reg_model), 
-             size = 3, color = "red", shape = 8) +
+             size = 4.5, shape = 8,stroke=1.5,show.legend = FALSE) +
   # highlight lowest mspe models
   geom_point(data = dat %>% group_by(outcome) %>% 
                filter(avg_post_mspe == min(avg_post_mspe)), 
-             size = 3, color = "red", shape = 4) +
+             size = 4.5, shape = 4,stroke=1.5,show.legend = FALSE) +
   facet_grid(outcome~method*states_to_include, 
              labeller = labeller(outcome = outcome.labs)) +
   geom_hline(yintercept = 0) +
-  theme_minimal() + 
+  theme_bw()+
   theme(axis.text.x = element_text(angle = 90)) +
   labs(title = "Multiverse Estimates for Final Difference in Outcomes between Ohio and Synthetic Comparison",
       # subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
@@ -144,6 +144,8 @@ ggplot(data  = dat %>% filter(avg_post_mspe < 50),
        caption = "Pre-registered model indicated with *, best fitting models indicated with X") +
   scale_color_brewer(palette="Dark2") +
   scale_alpha(range = c(1, 0.1), guide = "none")
+  
+
 
 ggsave("figures/multiverse_estimates.png",width = 20,height = 11)
 
@@ -174,3 +176,6 @@ dat %>% group_by(outcome) %>%
   summarise(sum(last_period_diff<0) ) %>%
   t()         
 
+model_fit %>%mutate(percent_rank(avg_post_mspe)) %>% arrange(-avg_post_mspe) %>% filter(model_num==163)
+
+model_fit %>% summarise(mean(avg_post_mspe))
