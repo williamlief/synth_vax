@@ -14,7 +14,8 @@ announce_dates <- raw_announce_dates %>%
          state = str_trim(state)) %>% 
   select(state, state_announce_date, state_announce_week) 
 
-dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) %>% 
+dat <- readRDS(here("data/weekly_data_2021-09-12.rds")) %>% 
+  filter(last_day<=make_date(2021,08,22)) %>% 
   tidylog::left_join(announce_dates) %>% 
   mutate(
     centered_week = week - state_announce_week,
@@ -60,8 +61,7 @@ ppool_syn_full <- multisynth(people_fully_vaccinated_per_hundred ~ post_announce
 # nu is set to default, which is a heuristic balance between completely separate 
 # comparisons and a fully pooled model.  
 print(ppool_syn_full$nu)
-ppool_syn_full_summ <- summary(ppool_syn_full)
-
+(ppool_syn_full_summ <- summary(ppool_syn_full))
 plot(ppool_syn_full) + 
   labs(y = "Difference in Percent Fully Vaccinated", 
        title = "Multistate Augmented Synthetic Control (Fully Vaccinated)",
@@ -81,7 +81,7 @@ ppool_syn_initial_dose <- multisynth(people_vaccinated_per_hundred ~ post_announ
                         dat)
 
 print(ppool_syn_initial_dose$nu)
-ppool_syn_initial_dose_summ <- summary(ppool_syn_initial_dose)
+(ppool_syn_initial_dose_summ <- summary(ppool_syn_initial_dose))
 
 plot(ppool_syn_initial_dose_summ) + 
   labs(y = "Difference in  Percent First Doses Doses", 
@@ -95,7 +95,7 @@ ppool_syn_total_dose <- multisynth(total_vaccinations_per_hundred ~ post_announc
                                      dat)
 
 print(ppool_syn_total_dose$nu)
-ppool_syn_total_dose_summ <- summary(ppool_syn_total_dose)
+(ppool_syn_total_dose_summ <- summary(ppool_syn_total_dose))
 
 plot(ppool_syn_total_dose_summ) + 
   labs(y = "Difference in Total Doses per Hundred", 
