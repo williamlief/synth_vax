@@ -104,38 +104,3 @@ plot(ppool_syn_total_dose_summ) +
 ggsave(here("figures/multisynth_total_doses.jpg"))
 
 
-
-# basic two-way fe --------------------------------------------------------
-# This was omitted from the paper, but finds similar results
-
-setFixest_dict(c(people_fully_vaccinated_per_hundred = "Vaccination Rate",
-                 daily_vaccinations_per_million = "Weekly Vaccinations (per million)",
-                 post_announce = "Average Treatment Effect", 
-                 treat = "Lottery State", 
-                 centered_week = "Relative Week"))
-
-dat <- replace_na(dat, list(centered_week = 0)) %>% 
-  mutate(treat = !is.na(state_announce_week))
-
-avg_est <- feols(c(people_fully_vaccinated_per_hundred, daily_vaccinations_per_million) ~ 
-        post_announce  
-      | week + state, 
-      cluster = ~state, 
-      data = dat) 
-
-dynamic_est <- feols(c(people_fully_vaccinated_per_hundred, daily_vaccinations_per_million) ~ 
-        i(centered_week, treat, ref = 0)  
-        | week + state, 
-      cluster = ~state, 
-      data = dat) 
-
-etable(avg_est[1], dynamic_est[1], avg_est[2], dynamic_est[2],
-       digits = 2, digits.stats = 2, 
-       drop = c(as.character(5:14), as.character(-24:-5)),
-       label = "tab:ddest",
-       title = "Difference in Difference Estimates",
-       tex = TRUE,
-       notes = "Weekly effect estimates relative to the announcement week. Effects for relative weeks less than -4 or greater than 4 omitted from table for legibility. Models include state clustered standard errors. Models include data from 01/12/2021 to 08/18/2021")
-  
-
-
