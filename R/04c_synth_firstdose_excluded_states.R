@@ -4,8 +4,10 @@
 library(here)
 library(tidyverse)
 library(tidysynth)
+library(lubridate)
 
-dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) 
+dat <- readRDS(here("data/weekly_data_2021-09-12.rds")) %>% 
+  filter(last_day <= make_date(2021, 08, 22))
 
 announce_dates <- read_csv("data-raw/lottery_announce_dates.csv") %>% 
   mutate(state = str_trim(state))
@@ -24,6 +26,7 @@ dat <- dat %>%
 vaccine_out <-
   dat  %>%
   synthetic_control(outcome = people_vaccinated_per_hundred, # !!! Difference in code is this outcome switch
+
                     unit = state, # unit index in the panel data
                     time = centered_week, # time index in the panel data
                     i_unit = "OH", # unit where the intervention occurred
@@ -61,3 +64,4 @@ vaccine_out %>%
   mutate(weights = round(weight, digits = 4)) %>%
   select(unit, weights) %>%
   write_csv(here("output/unit_weights_first_dose_ex_lotto.csv"))
+

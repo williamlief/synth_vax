@@ -108,46 +108,6 @@ vaccine_out %>% plot_differences() +
   ) 
 ggsave("figures/ex_lotto_treatment_differences.jpg")
 
-# Main result values
-mspe <- vaccine_out %>% 
-  grab_signficance() %>% 
-  rename(mspe_rank=rank) 
-
-average_diff <- vaccine_out %>%
-  unnest(.synthetic_control) %>%
-  filter(time_unit >= 1) %>%
-  group_by(.id) %>%
-  summarise(average_difference = mean(real_y - synth_y)) %>%
-  arrange(desc(average_difference)) %>%
-  mutate(average_rank=row_number()) 
-
-last_period_diff <- vaccine_out %>%
-  unnest(.synthetic_control) %>%
-  filter(time_unit == max(time_unit)) %>%
-  group_by(.id) %>%
-  summarise(last_period_diff = (real_y - synth_y)) %>%
-  distinct() %>%
-  ungroup() %>%
-  arrange(desc(last_period_diff)) %>% 
-  mutate(last_period_rank=row_number())
-
-state_performance_metrics <- 
-  mspe %>% 
-  left_join(average_diff,by=c("unit_name"=".id")) %>% 
-  left_join(last_period_diff,by=c("unit_name"=".id"))
-
-state_performance_metrics %>% filter(unit_name=="OH")
-# NOTE: latex table created by hand
-
-# Permutation Test Plot
-vaccine_out %>% plot_placebos() +
-  labs(
-    title = "Ohio and Synthetic Ohio",
-    caption = "Timing of The Lottery Announcement",
-    x="Weeks Relative to Lottery Announcement",
-    y="Percent Fully Vaccinated"
-  ) 
-ggsave(here("figures/alt_pretreatment_synth.jpg"))
 
 
 # Permutation Test and Conformal Inference --------------------------------
@@ -243,38 +203,3 @@ inference_tbl %>% filter(state=="OH")
 # note this is exact match for state_performance_metrics calculated with tidy_synth
 
 
-#Bayesian Estimates  Do Not Use
-# library(bpCausal)
-#
-# placebo.est
-# inference_tbl %>% mutate(mspe_squared=mspe_ratio^2) %>% filter(state=="OH")
-# out1 <- bpCausal(data = dat %>% as.data.frame(), ## simulated dataset  
-#                  index = c("fips", "week"), ## names for unit and time index
-#                  Yname = "people_fully_vaccinated_per_hundred", ## outcome variable
-#                  Dname = "post_ohio", ## treatment indicator  
-#                   Xname = c(),
-#                   Zname = c(),
-#                   Aname = c(),
-#                  re = "both",   # two-way random effect: choose from ("unit", "time", "none", "both") 
-#                  ar1 = TRUE,    # whether the time-level random effects is ar1 process or jsut multilevel (independent)
-#                  r = 10,        # factor numbers 
-#                  niter = 15000, # number of mcmc draws
-#                  burn = 5000,   # burn-in draws 
-#                  xlasso = 0,    ## whether to shrink constant coefs (1 = TRUE, 0 = FALSE)
-#                  zlasso = 0,    ## whether to shrink unit-level random coefs (1 = TRUE, 0 = FALSE)
-#                  alasso = 0,    ## whether to shrink time-level coefs (1 = TRUE, 0 = FALSE)
-#                  flasso = 0,    ## whether to shrink factor loadings (1 = TRUE, 0 = FALSE)
-#                  a1 = 0.001, a2 = 0.001, ## parameters for hyper prior shrink on beta (diffuse hyper priors)
-#                  b1 = 0.001, b2 = 0.001, ## parameters for hyper prior shrink on alpha_i
-#                  c1 = 0.001, c2 = 0.001, ## parameters for hyper prior shrink on xi_t
-#                  p1 = 0.001, p2 = 0.001
-#                  ) ## parameters for hyper prior shrink on factor terms
-# 
-# out1
-# coefSummary(out1)
-# 
-# 
-# eout1 <- effSummary(out1,   ## summary treatment effects
-#                     usr.id = 39, ## treatment effect for individual treated units, if input NULL, calculate average TT
-#                     cumu = FALSE,  ## whether to calculate culmulative treatment effects
-#                     rela.period = TRUE) ## whether to use time relative to the occurence of treatment (1 is the first post-treatment

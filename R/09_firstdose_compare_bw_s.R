@@ -8,7 +8,7 @@ library(lubridate)
 
 fips <- read_csv(here("data-raw/fips.csv"))
 
-dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) %>% 
+dat <- readRDS(here("data/weekly_data_2021-09-12.rds")) %>% 
   select(state, fips, week, centered_week, last_day,
          people_vaccinated_per_hundred, 
          people_fully_vaccinated_per_hundred) %>% 
@@ -28,6 +28,7 @@ bw_synth <- dat %>%
   summarize(bw_synth = sum(synth, na.rm = T),
             bw_n = sum(weight, na.rm = T)) # bw_n lets us confirm that we dont have any missing data problems
 
+
 s_synth <- dat %>% 
   tidylog::left_join(sehgal_weights %>% 
                        rename(weight = Weight), 
@@ -37,6 +38,7 @@ s_synth <- dat %>%
   summarize(s_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T),
             s_n = sum(weight, na.rm = T))
 
+
 this_synth <- dat %>% 
   tidylog::left_join(this_weights %>% 
                        rename(weight = weights), 
@@ -45,6 +47,7 @@ this_synth <- dat %>%
   group_by(centered_week) %>% 
   summarize(t_synth = sum(weight * people_vaccinated_per_hundred, na.rm = T),
             t_n = sum(weight, na.rm = T))
+
 
 oh <- dat %>% 
   filter(state == "OH") 
@@ -77,8 +80,3 @@ ggplot(compare,
        subtitle = "Observed Ohio First Dose Vaccination Rate Minus Synthetic Counterfactual")
 
 ggsave(here("figures/first_dose_compare.jpg"), bg = "white")
-
-
-
-
-

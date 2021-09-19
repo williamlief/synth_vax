@@ -10,7 +10,7 @@ library(glue)
 
 # This is the date that raw vax data was pulled
 # used in name when writing clean data
-date <- "2021-08-18"
+date <- "2021-09-12"
 
 fips <- read_csv(here::here("data-raw/fips.csv"))
 raw_cases <- read_csv(here::here(str_glue("data-raw/us_cases_{date}.csv")))
