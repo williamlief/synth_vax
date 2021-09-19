@@ -1,12 +1,11 @@
 unit,weights
-<<<<<<< HEAD
 AK,0.0043
 AL,0
 AZ,0
 CT,0
 DC,8e-4
 FL,0
-GA,0.1208
+GA,0.1209
 HI,0
 IA,0
 ID,0
@@ -15,50 +14,20 @@ KS,0.3496
 MN,0
 MO,0.0619
 MS,0
-=======
-AK,0
-AL,0
-AZ,0
-CT,0
-DC,0
-FL,0
-GA,0.265
-HI,0
-IA,0.1602
-ID,0
-IN,0
-KS,0
-MN,0
-MO,0
-MS,0.1359
->>>>>>> main
 MT,0
 ND,0
 NE,0
 NH,0
 NJ,0
-<<<<<<< HEAD
 OK,0.1214
 PA,0.0602
 RI,0
 SC,0
 SD,0
 TN,0.1524
-=======
-OK,0
-PA,0
-RI,0
-SC,0
-SD,0
-TN,0
->>>>>>> main
 TX,0
 UT,0
 VA,0
 VT,0
-<<<<<<< HEAD
 WI,0.1285
-=======
-WI,0.4389
->>>>>>> main
 WY,0
