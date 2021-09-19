@@ -3,7 +3,6 @@ library(lubridate)
 library(here)
 library(gghighlight)
 library(augsynth)
-library(fixest)
 
 # announce data for all states
 raw_announce_dates <- read_csv("data-raw/lottery_announce_dates.csv")
@@ -49,7 +48,8 @@ ggplot(dat, aes(x = last_day,
   ) +
   theme_minimal()
 
-ggsave(here("figures/vax_byannounce_bystate.jpg"))
+ggsave(here("figures/vax_byannounce_bystate.jpg"), 
+       width = )
 
 
 # augsynth model ----------------------------------------------------------

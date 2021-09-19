@@ -147,7 +147,7 @@ ggplot(data  = dat %>% filter(avg_post_mspe < 50),
   
 
 
-ggsave("figures/multiverse_estimates.png",width = 20,height = 11)
+ggsave("figures/multiverse_estimates.png", width = 20, height = 11)
 
 
 # MSPE stats --------------------------------------------------------------
