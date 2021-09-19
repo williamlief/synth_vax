@@ -8,7 +8,7 @@ library(lubridate)
 
 fips <- read_csv(here("data-raw/fips.csv"))
 
-dat <- readRDS(here("data/weekly_data_2021-08-18.rds")) %>% 
+dat <- readRDS(here("data/weekly_data_2021-09-12.rds")) %>% 
   select(state, fips, week, centered_week, last_day,
          people_vaccinated_per_hundred, 
          people_fully_vaccinated_per_hundred) %>% 
@@ -74,3 +74,6 @@ ggplot(compare,
        subtitle = "Observed Ohio First Dose Vaccination Rate Minus Synthetic Counterfactual")
 
 ggsave(here("figures/first_dose_compare.jpg"), bg = "white")
+
+
+compare  %>% filter(centered_week>0) %>% group_by(estimate) %>% summarise(mean(abs(value)^2))
