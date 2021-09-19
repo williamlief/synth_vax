@@ -219,7 +219,7 @@ multiverse_run <- function(model_num,
     
     as_results <- as_results %>% 
       mutate(mspe_ratio = post_mspe/pre_mspe,
-             mspe_rank = rank(mspe_ratio), 
+             mspe_rank = rank(-mspe_ratio), 
              average_rank = rank(average_diff), 
              last_period_rank = rank(last_period_diff), 
              type = ifelse(unit_name == "OH", "Treated", "Donor"), 
