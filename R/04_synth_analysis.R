@@ -61,7 +61,8 @@ vaccine_out %>%
 vaccine_out %>% plot_weights() + 
   labs(title="Synthetic Control Weights")   
 # Note: not included in paper writeup
-ggsave(here("figures/weights.jpg"))
+ggsave(here("figures/weights.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 # Balance Table
 vaccine_out %>%
@@ -83,7 +84,8 @@ vaccine_out %>% plot_trends() +
     y="Percent Fully Vaccinated"
   ) 
 # NOTE: not included in paper writeup
-ggsave("figures/treatment_trends.jpg")
+ggsave("figures/treatment_trends.jpg", 
+       bg = "white", width = 7, height = 7)
 
 # Plot Model Differences
 vaccine_out %>% plot_differences() +
@@ -94,7 +96,8 @@ vaccine_out %>% plot_differences() +
     x="Weeks Relative to Lottery Announcement",
     y="Difference in Percent Fully Vaccinated"
   ) 
-ggsave("figures/treatment_differences.jpg")
+ggsave("figures/treatment_differences.jpg", 
+       bg = "white", width = 7, height = 7)
 
 
 
@@ -141,7 +144,8 @@ plot(asynth) +
     subtitle="Confidence Intervals Estimated Using Conformal Inference",
     x="Weeks Relative to Lottery Announcement"
   )
-ggsave(here("figures/conformal_inference_asynth_including_lotto.jpg"))
+ggsave(here("figures/conformal_inference_asynth_including_lotto.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 
 # Permutation Tests with augsynth -----------------------------------------
@@ -237,7 +241,8 @@ placebo_out %>% plot_trends()  +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   )
-ggsave(here("figures/placebo_analysis.jpg"))
+ggsave(here("figures/placebo_analysis.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 
 placebo_out %>% plot_differences()  + 
@@ -247,13 +252,15 @@ placebo_out %>% plot_differences()  +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   )
-ggsave(here("figures/placebo_difference.jpg"))
+ggsave(here("figures/placebo_difference.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 placebo_out %>% grab_signficance() %>% filter(unit_name=="OH")
 placebo_out %>% grab_unit_weights() %>% arrange(desc(weight))
 
 placebo_out %>% plot_mspe_ratio() 
-ggsave(here("figures/placebo_mspe.jpg"))
+ggsave(here("figures/placebo_mspe.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 
 

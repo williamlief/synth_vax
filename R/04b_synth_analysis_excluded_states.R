@@ -71,7 +71,8 @@ vaccine_out %>%
 
 vaccine_out %>% plot_weights() + 
   labs(title="Synthetic Control Weights")   
-ggsave(here("figures/ex_lotto_weights.jpg"))
+ggsave(here("figures/ex_lotto_weights.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 # Balance Table
 balance_table <- vaccine_out %>%
@@ -96,7 +97,8 @@ vaccine_out %>% plot_trends() +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
-ggsave("figures/ex_lotto_treatment_trends.jpg")
+ggsave("figures/ex_lotto_treatment_trends.jpg", 
+       bg = "white", width = 7, height = 7)
 
 vaccine_out %>% plot_differences() +
   scale_x_continuous(breaks = c(-15,-10,-5,0,5)) +
@@ -106,7 +108,8 @@ vaccine_out %>% plot_differences() +
     x="Weeks Relative to Lottery Announcement",
     y="Percent Fully Vaccinated"
   ) 
-ggsave("figures/ex_lotto_treatment_differences.jpg")
+ggsave("figures/ex_lotto_treatment_differences.jpg", 
+       bg = "white", width = 7, height = 7)
 
 
 
@@ -151,7 +154,8 @@ plot(asynth) +
     subtitle="Confidence Intervals Estimated Using Conformal Inference",
     x="Weeks Relative to Lottery Announcement"
   )
-ggsave(here("figures/conformal_inference_asynth_ex_lotto.jpg"))
+ggsave(here("figures/conformal_inference_asynth_ex_lotto.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 
 # Permutation Tests with augsynth -----------------------------------------

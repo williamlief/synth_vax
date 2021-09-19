@@ -23,7 +23,8 @@ ggplot(dat, aes(x = last_day,
   ) +
   theme_minimal()
 
-ggsave(here("figures/state_plot_lines.jpg"))
+ggsave(here("figures/state_plot_lines.jpg"), 
+       bg = "white", width = 7, height = 4)
 
 dat %>% 
   filter(centered_week == 4)  %>% 

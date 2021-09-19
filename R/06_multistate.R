@@ -49,7 +49,7 @@ ggplot(dat, aes(x = last_day,
   theme_minimal()
 
 ggsave(here("figures/vax_byannounce_bystate.jpg"), 
-       width = )
+       bg = "white", width = 7, height = 7)
 
 
 # augsynth model ----------------------------------------------------------
@@ -66,7 +66,8 @@ plot(ppool_syn_full) +
   labs(y = "Difference in Percent Fully Vaccinated", 
        title = "Multistate Augmented Synthetic Control (Fully Vaccinated)",
        subtitle = "Difference between Treated States and Synthetic Comparisons")
-ggsave(here("figures/multisynth_full_vax.jpg"))
+ggsave(here("figures/multisynth_full_vax.jpg"),
+       bg = "white", width = 7, height = 7)
 
 
 
@@ -87,7 +88,8 @@ plot(ppool_syn_initial_dose_summ) +
   labs(y = "Difference in  Percent First Doses Doses", 
        title = "Multistate Augmented Synthetic Control (First Dose)",
        subtitle = "Difference between Treated States and Synthetic Comparisons")
-ggsave(here("figures/multisynth_initial_dose.jpg"))
+ggsave(here("figures/multisynth_initial_dose.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 # Total Doses
 ppool_syn_total_dose <- multisynth(total_vaccinations_per_hundred ~ post_announce, 
@@ -101,6 +103,7 @@ plot(ppool_syn_total_dose_summ) +
   labs(y = "Difference in Total Doses per Hundred", 
        title = "Multistate Augmented Synthetic Control (Total Doses)",
        subtitle = "Difference between Treated States and Synthetic Comparisons")
-ggsave(here("figures/multisynth_total_doses.jpg"))
+ggsave(here("figures/multisynth_total_doses.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 

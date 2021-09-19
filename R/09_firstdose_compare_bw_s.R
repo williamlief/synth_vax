@@ -73,7 +73,7 @@ ggplot(compare,
        title = "Extended Time Analysis of First Dose Effects", 
        subtitle = "Observed Ohio First Dose Vaccination Rate Minus Synthetic Counterfactual")
 
-ggsave(here("figures/first_dose_compare.jpg"), bg = "white")
-
+ggsave(here("figures/first_dose_compare.jpg"), 
+       bg = "white", width = 7, height = 7)
 
 compare  %>% filter(centered_week>0) %>% group_by(estimate) %>% summarise(mean(abs(value)^2))
