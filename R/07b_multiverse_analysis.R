@@ -156,10 +156,6 @@ summary(dat$avg_post_mspe)
 dat %>% filter(model_num == pre_reg_model) %>% pull(avg_post_mspe)
 
 
-dat %>% group_by(outcome) %>% 
-  filter(states_to_include!="All States + DC") %>%
-  filter(avg_post_mspe == min(avg_post_mspe)) %>% 
-  t()
 
 
 dat %>% group_by(outcome) %>% 
@@ -179,3 +175,14 @@ dat %>% group_by(outcome) %>%
 model_fit %>%mutate(percent_rank(avg_post_mspe)) %>% arrange(-avg_post_mspe) %>% filter(model_num==163)
 
 model_fit %>% summarise(mean(avg_post_mspe))
+
+model_fit %>% summarise(median(avg_post_mspe))
+
+multiverse_spec
+
+
+multiverse_stack %>% filter(model_num=="163") %>% arrange(fishers_exact_pvalue
+                                                          )
+
+
+
