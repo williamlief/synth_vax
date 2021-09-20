@@ -4,7 +4,7 @@ library(here)
 multiverse_output <- readRDS(here::here("output-multiverse/multiverse_output.RDS"))
 
 multiverse_spec <- readRDS(here::here("output-multiverse/multiverse_spec.RDS")) %>% 
-unnest(method,as_progfunc,pretreat_start) %>%
+  unnest(method,as_progfunc,pretreat_start) %>%
   mutate(method = if_else(as_progfunc == "none" & as_fixedeff == "FALSE", 
                           "Classical SCM", 
                           method))
@@ -68,8 +68,8 @@ pre_reg_model <- multiverse_spec %>%
          covariates=="NULL",
          #str_detect(as.character(states_to_include),"CA"),negate=TRUE,
          map_dbl(states_to_include,length)==33,
-         )  %>% pull(model_num)
-  
+  )  %>% pull(model_num)
+
 
 pre_reg_model
 pre_reg <- dat %>% filter(model_num == pre_reg_model)
@@ -117,34 +117,36 @@ ggsave("figures/multiverse_weights.png", width = 20, height = 11)
 
 # Compare Estimates -------------------------------------------------------
 
-
-ggplot(data  = dat %>% filter(avg_post_mspe < 50), 
+dat
+ggplot(data  = dat , 
        aes(long_time, last_period_diff, 
            color = covariates
            #alpha = avg_post_mspe
-           )) +
-  geom_point(size=2.5) +
+       )) +
+  geom_hline(yintercept = 0) +
+  geom_point(size=2.5,position=position_dodge(width=.75)) +
   # highlight prereg model
   geom_point(data = dat %>% filter(model_num == pre_reg_model), 
              size = 4.5, shape = 8,stroke=1.5,show.legend = FALSE) +
+  geom_errorbar(aes(ymin=last_period_lower_bound,ymax=last_period_upper_bound),position=position_dodge(width=.75)) +
   # highlight lowest mspe models
   geom_point(data = dat %>% group_by(outcome) %>% 
                filter(avg_post_mspe == min(avg_post_mspe)), 
              size = 4.5, shape = 4,stroke=1.5,show.legend = FALSE) +
-  facet_grid(outcome~method*states_to_include, 
-             labeller = labeller(outcome = outcome.labs)) +
-  geom_hline(yintercept = 0) +
+  facet_wrap(outcome~method*states_to_include, 
+             labeller = labeller(outcome = outcome.labs),scale="free") +
+  
   theme_bw()+
-  theme(axis.text.x = element_text(angle = 90)) +
+  theme(axis.text.x = element_text(angle = 90),axis.ticks.x=element_blank()) +
   labs(title = "Multiverse Estimates for Final Difference in Outcomes between Ohio and Synthetic Comparison",
-      # subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
+       # subtitle = "Models with higher post period MSPE in non-treated states have lower alpha values",
        x = NULL,
        y = "Estimated Difference in Outcome in Final Time Period",
        color = "Covariate Adjustment",
        caption = "Pre-registered model indicated with *, best fitting models indicated with X") +
   scale_color_brewer(palette="Dark2") +
   scale_alpha(range = c(1, 0.1), guide = "none")
-  
+
 
 
 ggsave("figures/multiverse_estimates.png",width = 20,height = 11)
@@ -182,7 +184,7 @@ multiverse_spec
 
 
 multiverse_stack %>% filter(model_num=="163") %>% arrange(fishers_exact_pvalue
-                                                          )
+)
 
-
+dat %>% filter(last_period_upper_bound==0) 
 

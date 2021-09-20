@@ -211,7 +211,14 @@ multiverse_run <- function(model_num,
         filter(Time == max(Time)) %>% 
         select(last_period_diff = Estimate)
       
-      cbind(pre_mspe, post_mspe, average_diff, last_period_diff)
+      last_period_upper_bound = as_sum$att %>% 
+        filter(Time == max(Time)) %>% 
+        select(last_period_upper_bound = upper_bound      )
+      
+      last_period_lower_bound = as_sum$att %>% 
+        filter(Time == max(Time)) %>% 
+        select(last_period_lower_bound = lower_bound )
+      cbind(pre_mspe, post_mspe, average_diff, last_period_diff,last_period_lower_bound,last_period_upper_bound)
     }
     
     as_results <- as_sum %>% 
