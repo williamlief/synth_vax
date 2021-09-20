@@ -3,7 +3,7 @@
 ## Publications
 
 * [Working Paper](https://osf.io/26n9a/) (September 19th, 2021)
-* [Working Paper](https://osf.io/a6de5/) (July 5th, 2021) 
+  * [Previous Version](https://osf.io/a6de5/) (July 5th, 2021) 
 * [Pre-registered analysis plan](https://osf.io/g6xns/) (May 24, 2021)
 
 ## Directory Info
