@@ -66,7 +66,7 @@ ggplot(mapping =
   geom_line(data = filter(compare, week <= optim_start), linetype = 3) +
   theme_bw() +
   geom_label(aes(x = make_date(2021, 4, 1), y = 1),
-             label = "Pre-Lottery Announcment", color = "black") +
+             label = "Pre-Lottery Announcement", color = "black") +
   geom_vline(xintercept = make_date(2021, 5, 12), linetype = "dashed") +
   geom_label(aes(x = make_date(2021, 5, 12) + 20, y = 1), 
                 label = "Lottery Period", color = "black") +
