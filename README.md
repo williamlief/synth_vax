@@ -22,3 +22,7 @@
 * Science Magazine ["Cash for shots? Studies suggest payouts improve vaccination rates"](https://www.sciencemag.org/news/2021/08/cash-shots-studies-suggest-payouts-improve-vaccination-rates) August 4th, 2021
 * CDC ["COVID-19 Vaccination Field Guide: 12 Strategies for Your Community"](https://www.cdc.gov/vaccines/covid-19/downloads/covid19-vax-field-guide-12-strategies.pdf)
 
+## Twitter Announcements
+
+* [July 5th New Working Paper](https://twitter.com/davidnlang/status/1412161173215084544?)
+* [September 20th Updated Working Paper](https://twitter.com/DavidnLang/status/1440007178518097921)
